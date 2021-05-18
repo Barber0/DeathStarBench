@@ -33,7 +33,7 @@ spec:
             - containerPort: 27017
           resources:
             limits:
-              cpu: 420m
+              cpu: 400m
           volumeMounts:
             - mountPath: /data/db
               name: reservation
