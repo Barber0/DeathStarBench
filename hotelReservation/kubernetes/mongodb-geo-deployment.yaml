@@ -32,8 +32,10 @@ spec:
           ports:
             - containerPort: 27017
           resources:
+            requests:
+              cpu: 300m
             limits:
-              cpu: 390m
+              cpu: 350m
           volumeMounts:
             - mountPath: /data/db
               name: geo
