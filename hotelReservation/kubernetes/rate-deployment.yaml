@@ -25,7 +25,6 @@ spec:
       labels:
         io.kompose.service: rate
     spec:
-      nodeName: autosys-3
       containers:
         - command:
             - rate

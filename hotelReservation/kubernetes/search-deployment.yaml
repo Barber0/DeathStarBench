@@ -25,7 +25,6 @@ spec:
       labels:
         io.kompose.service: search
     spec:
-      nodeName: autosys-2
       containers:
         - command:
             - search

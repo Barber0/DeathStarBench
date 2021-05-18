@@ -25,7 +25,6 @@ spec:
       labels:
         io.kompose.service: user
     spec:
-      nodeName: autosys-3
       containers:
         - command:
             - user

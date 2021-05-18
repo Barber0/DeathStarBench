@@ -26,7 +26,6 @@ spec:
       labels:
         io.kompose.service: mongodb-profile
     spec:
-      nodeName: autosys-3
       containers:
         - image: mongo
           name: hotel-reserv-profile-mongo

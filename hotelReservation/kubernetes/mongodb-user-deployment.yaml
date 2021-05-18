@@ -26,7 +26,6 @@ spec:
       labels:
         io.kompose.service: mongodb-user
     spec:
-      nodeName: autosys-2
       containers:
         - image: mongo
           name: hotel-reserv-user-mongo

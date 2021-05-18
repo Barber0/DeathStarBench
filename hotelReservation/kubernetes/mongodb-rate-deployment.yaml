@@ -26,7 +26,6 @@ spec:
       labels:
         io.kompose.service: mongodb-rate
     spec:
-      nodeName: autosys-3
       containers:
         - image: mongo
           name: hotel-reserv-rate-mongo

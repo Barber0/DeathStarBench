@@ -25,7 +25,6 @@ spec:
       labels:
         io.kompose.service: jaeger
     spec:
-      nodeName: autosys-2
       containers:
         - image: jaegertracing/all-in-one:latest
           name: hotel-reserv-jaeger
