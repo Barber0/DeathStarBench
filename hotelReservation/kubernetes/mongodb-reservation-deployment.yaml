@@ -26,7 +26,7 @@ spec:
       labels:
         io.kompose.service: mongodb-reservation
     spec:
-      nodeName: r13
+      nodeName: autosys-2
       containers:
         - image: mongo
           name: hotel-reserv-reservation-mongo

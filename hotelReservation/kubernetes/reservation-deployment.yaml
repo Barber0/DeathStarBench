@@ -25,7 +25,7 @@ spec:
       labels:
         io.kompose.service: reservation
     spec:
-      nodeName: r09
+      nodeName: autosys-2
       containers:
         - command:
             - reservation
