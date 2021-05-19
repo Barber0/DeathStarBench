@@ -1,7 +1,8 @@
 FROM golang:1.15
 
-COPY . /go/src/github.com/harlow/go-micro-services
-WORKDIR /go/src/github.com/harlow/go-micro-services
-RUN go get gopkg.in/mgo.v2
-RUN go get github.com/bradfitz/gomemcache/memcache
+RUN mkdir -p /app
+RUN mkdir -p /mysource
+
+COPY . /mysource
+WORKDIR /mysource
 RUN go install -ldflags="-s -w" ./cmd/...
