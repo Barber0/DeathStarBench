@@ -7,5 +7,14 @@ consul:
   tag: latest
   replicas: 1
   restart: Always
-  cpu_req: 300m
-  cpu_limit: 350m
+  cpuReq: 300m
+  cpuLimit: 350m
+  ports:
+    - src: 8300
+      dest: 8300
+    - src: 8400
+      dest: 8400
+    - src: 8500
+      dest: 8500
+    - src: 53
+      dest: 8600
