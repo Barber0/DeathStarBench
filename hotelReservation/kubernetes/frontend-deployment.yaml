@@ -37,8 +37,8 @@ spec:
               cpu: 300m
             limits:
               cpu: 350m
-          env:
+          env: 
             - name: GRPC_GO_REQUIRE_HANDSHAKE
-              value: off
+              value: "off"
       restartPolicy: Always
 status: {}

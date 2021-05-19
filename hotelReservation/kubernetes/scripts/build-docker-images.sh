@@ -5,7 +5,7 @@ cd $(dirname $0)/..
 
 EXEC=docker
 
-USER="salehsedghpour"
+USER="simonalphafang"
 
 TAG="latest"
 
@@ -19,11 +19,10 @@ do
   echo Processing image ${IMAGE}
   cd $ROOT_FOLDER
   $EXEC build -t "$USER"/"$IMAGE":"$TAG" -f Dockerfile .
-  $EXEC push "$USER"/"$IMAGE":"$TAG"
+  $EXEC push $USER/$IMAGE:$TAG
   cd $ROOT_FOLDER
 
   echo
 done
 
 
-cd - >/dev/null
