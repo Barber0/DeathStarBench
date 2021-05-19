@@ -35,6 +35,9 @@ spec:
             - containerPort: 53
               protocol: UDP
           resources:
-            {{ .Values.consul.resources }}
+            requests:
+              cpu: {{ .Values.consul.cpu_req }}
+            limits:
+              cpu: {{ .Values.consul.cpu_limit }}
       restartPolicy: {{ .Values.consul.restart }}
 status: {}

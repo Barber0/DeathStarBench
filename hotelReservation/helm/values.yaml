@@ -7,8 +7,5 @@ consul:
   tag: latest
   replicas: 1
   restart: Always
-  resources:
-    requests:
-      cpu: 300m
-    limits:
-      cpu: 350m
+  cpu_req: 300m
+  cpu_limit: 350m
