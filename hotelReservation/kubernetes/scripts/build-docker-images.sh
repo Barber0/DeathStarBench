@@ -1,28 +1,21 @@
 #!/bin/bash
 
-cd $(dirname $0)/..
-
+cd $(dirname $0)/../..
 
 EXEC=docker
-
 USER="simonalphafang"
-
 TAG="latest"
-
-# ENTER THE ROOT FOLDER
-cd ../
 ROOT_FOLDER=$(pwd)
 
-for i in frontend geo profile rate recommendation reserve search user
-do
-  IMAGE=hotel_reserv_${i}_single_node
-  echo Processing image ${IMAGE}
-  cd $ROOT_FOLDER
-  $EXEC build -t "$USER"/"$IMAGE":"$TAG" -f Dockerfile .
-  $EXEC push $USER/$IMAGE:$TAG
-  cd $ROOT_FOLDER
+PROTO_NAME=hotel_reserve_proto
+FULL_PROTO_NAME=$USER/$PROTO_NAME:$TAG
 
-  echo
+$EXEC build -t $FULL_PROTO_NAME .
+
+for mod in frontend geo profile rate recommendation reserve search user; do
+  MOD_NAME=hotel_reserve_${mod}
+  FULL_MOD_NAME=$USER/$MOD_NAME:$TAG
+  $EXEC tag $FULL_PROTO_NAME $FULL_MOD_NAME
+  $EXEC push $FULL_MOD_NAME
 done
-
 
