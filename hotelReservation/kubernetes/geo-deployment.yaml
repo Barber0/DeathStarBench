@@ -28,7 +28,8 @@ spec:
       containers:
         - command:
             - geo
-          image: salehsedghpour/hotel_reserv_geo_single_node
+          image: simonalphafang/hotel_reserve_geo
+          imagePullPolicy: Always
           name: hotel-reserv-geo
           ports:
             - containerPort: 8083

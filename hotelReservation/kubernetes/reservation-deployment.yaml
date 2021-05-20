@@ -28,7 +28,8 @@ spec:
       containers:
         - command:
             - reservation
-          image: salehsedghpour/hotel_reserv_reserve_single_node
+          image: simonalphafang/hotel_reserve_reserve
+          imagePullPolicy: Always
           name: hotel-reserv-reservation
           ports:
             - containerPort: 8087

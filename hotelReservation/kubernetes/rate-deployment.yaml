@@ -28,7 +28,8 @@ spec:
       containers:
         - command:
             - rate
-          image: salehsedghpour/hotel_reserv_rate_single_node
+          image: simonalphafang/hotel_reserve_rate
+          imagePullPolicy: Always
           name: hotel-reserv-rate
           ports:
             - containerPort: 8084

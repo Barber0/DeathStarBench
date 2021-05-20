@@ -28,7 +28,8 @@ spec:
       containers:
         - command:
             - search
-          image: salehsedghpour/hotel_reserv_search_single_node
+          image: simonalphafang/hotel_reserve_search
+          imagePullPolicy: Always
           name: hotel-reserv-search
           ports:
             - containerPort: 8082
