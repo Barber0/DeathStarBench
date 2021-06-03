@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: reservation
     io.kompose.service: reservation
   name: reservation
 spec:

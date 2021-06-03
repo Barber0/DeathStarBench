@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: mongodb-user
     io.kompose.service: mongodb-user
   name: mongodb-user
 spec:
