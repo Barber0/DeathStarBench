@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: user
     io.kompose.service: user
   name: user
 spec:
@@ -23,6 +24,7 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       creationTimestamp: null
       labels:
+        app: user
         io.kompose.service: user
     spec:
       containers:
@@ -35,7 +37,7 @@ spec:
             - containerPort: 8086
           resources:
             requests:
-              cpu: 50m
+              cpu: 10m
             limits:
               cpu: 350m
           env:

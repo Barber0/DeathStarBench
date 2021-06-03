@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: geo
     io.kompose.service: geo
   name: geo
 spec:
@@ -16,4 +17,4 @@ spec:
   selector:
     io.kompose.service: geo
 status:
-  loadBalancer: {}
+  loadBalancer: { }

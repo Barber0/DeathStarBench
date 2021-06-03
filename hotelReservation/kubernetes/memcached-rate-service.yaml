@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: memcached-rate
     io.kompose.service: memcached-rate
   name: memcached-rate
 spec:

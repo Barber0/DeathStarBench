@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{.Values.appLabel}}: {{.Values.frontend.name}}
+  name: {{.Values.frontend.name}}
+spec:
+  selector:
+    {{.Values.appLabel}}: {{.Values.frontend.name}}
+  ports:
+    {{- range .Values.frontend.ports}}
+    - port: {{.src}}
+      targetPort: {{.dest}}
+  {{end}}

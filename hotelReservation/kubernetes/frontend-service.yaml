@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: frontend
     io.kompose.service: frontend
   name: frontend
 spec:
@@ -16,4 +17,4 @@ spec:
   selector:
     io.kompose.service: frontend
 status:
-  loadBalancer: {}
+  loadBalancer: { }

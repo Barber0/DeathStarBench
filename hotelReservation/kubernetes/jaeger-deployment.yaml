@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: jaeger
     io.kompose.service: jaeger
   name: jaeger
 spec:
@@ -13,7 +14,7 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: jaeger
-  strategy: {}
+  strategy: { }
   template:
     metadata:
       annotations:
@@ -23,6 +24,7 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       creationTimestamp: null
       labels:
+        app: jaeger
         io.kompose.service: jaeger
     spec:
       containers:
@@ -49,4 +51,4 @@ spec:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
       restartPolicy: Always
-status: {}
+status: { }

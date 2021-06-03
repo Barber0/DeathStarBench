@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: consul
     io.kompose.service: consul
   name: consul
 spec:
@@ -26,4 +27,4 @@ spec:
   selector:
     io.kompose.service: consul
 status:
-  loadBalancer: {}
+  loadBalancer: { }

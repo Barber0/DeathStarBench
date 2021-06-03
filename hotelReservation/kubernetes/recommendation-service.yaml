@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: recommendation
     io.kompose.service: recommendation
   name: recommendation
 spec:
