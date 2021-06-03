@@ -1,21 +1,18 @@
 package geo
 
 import (
-	// "encoding/json"
 	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	// "io/ioutil"
 	"log"
 	"net"
-	// "os"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/hailocab/go-geoindex"
 	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
 	pb "github.com/harlow/go-micro-services/services/geo/proto"
+	"github.com/harlow/go-micro-services/tls"
 	opentracing "github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -33,11 +30,11 @@ type Server struct {
 	index *geoindex.ClusteringIndex
 	uuid  string
 
-	Registry *registry.Client
-	Tracer   opentracing.Tracer
-	Port     int
-	IpAddr	 string
-	MongoSession 	*mgo.Session
+	Registry     *registry.Client
+	Tracer       opentracing.Tracer
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
 }
 
 // Run starts the server
@@ -184,7 +181,7 @@ type point struct {
 	Plon float64 `bson:"lon"`
 }
 
-// Implement Point interface
+// Lat Implement Point interface
 func (p *point) Lat() float64 { return p.Plat }
 func (p *point) Lon() float64 { return p.Plon }
 func (p *point) Id() string   { return p.Pid }
