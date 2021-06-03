@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - recommendation
-          image: simonalphafang/hotel_reserve_recommendation
+          image: simonalphafang/hotel_reserve_recommendation:0.0.3-istio
           imagePullPolicy: Always
           name: hotel-reserv-recommendation
           ports:

@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - geo
-          image: simonalphafang/hotel_reserve_geo
+          image: simonalphafang/hotel_reserve_geo:0.0.3-istio
           imagePullPolicy: Always
           name: hotel-reserv-geo
           ports:

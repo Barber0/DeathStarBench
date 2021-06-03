@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - search
-          image: simonalphafang/hotel_reserve_search
+          image: simonalphafang/hotel_reserve_search:0.0.3-istio
           imagePullPolicy: Always
           name: hotel-reserv-search
           ports:

@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - rate
-          image: simonalphafang/hotel_reserve_rate
+          image: simonalphafang/hotel_reserve_rate:0.0.3-istio
           imagePullPolicy: Always
           name: hotel-reserv-rate
           ports:

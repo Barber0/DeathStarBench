@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_user
+          image: simonalphafang/hotel_reserve_user:0.0.3-istio
           imagePullPolicy: Always
           name: hotel-reserv-user
           ports:
