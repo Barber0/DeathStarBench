@@ -6,10 +6,9 @@ metadata:
   name: consul
 spec:
   ports:
-  {{ - range .Values.ports }}
+  {{- range .Values.ports }}
   {{ with . }}
-    - name: {{ .src }}_{{ .dest }}
-      port: {{ .src }}
+    - port: {{ .src }}
       targetPort: {{ .dest }}
   {{ end }}
   {{ end }}

@@ -22,7 +22,7 @@ spec:
         - image: {{ .Values.consul.image }}:{{ .Values.consul.tag }}
           name: consul
           ports:
-          {{ - range .Values.consul.ports }}
+          {{- range .Values.consul.ports }}
           {{ with . }}
             - containerPort: {{ .src }}
           {{ end }}
