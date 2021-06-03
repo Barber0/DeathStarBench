@@ -20,6 +20,7 @@ spec:
     - name: "8500"
       port: 8500
       targetPort: 8500
+      nodePort: 18500
     - name: "8600"
       port: 8600
       protocol: UDP
