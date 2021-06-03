@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: mongodb-rate
     io.kompose.service: mongodb-rate
   name: mongodb-rate
 spec:
@@ -24,6 +25,7 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       creationTimestamp: null
       labels:
+        app: mongodb-rate
         io.kompose.service: mongodb-rate
     spec:
       containers:

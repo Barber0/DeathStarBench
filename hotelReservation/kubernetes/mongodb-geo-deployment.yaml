@@ -6,6 +6,7 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
+    app: mongodb-geo
     io.kompose.service: mongodb-geo
   name: mongodb-geo
 spec:
@@ -24,6 +25,7 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       creationTimestamp: null
       labels:
+        app: mongodb-geo
         io.kompose.service: mongodb-geo
     spec:
       containers:
