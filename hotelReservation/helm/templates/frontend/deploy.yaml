@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{.Values.appLabel}}: {{.Values.frontend.name}}
+  name: {{.Values.frontend.name}}
+spec:
+  replicas: {{.Values.frontend.replicas}}
+  selector:
+    matchLabels:
+      {{.Values.appLabel}}: {{.Values.frontend.name}}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/statsInclusionPrefixes: cluster.outbound,cluster_manager,listener_manager,http_mixer_filter,tcp_mixer_filter,server,cluster.xds-grp,listener,connection_manager
+        sidecar.istio.io/statsInclusionRegexps: http.*
+      labels:
+        {{.Values.appLabel}}: {{.Values.frontend.name}}
+    spec:
+      containers:
+        - command:
+          {{- toYaml .Values.frontend.cmd | nindent 12}}
+          image: "{{.Values.imageRegistry}}/{{.Values.frontend.image}}:{{.Values.frontend.tag}}"
+          imagePullPolicy: {{.Values.imagePullPolicy}}
+          name: {{.Values.frontend.image}}
+          ports:
+            {{- range .Values.consul.ports }}
+            - containerPort: {{ .src }}
+              protocol: {{.protocol | default "TCP"}}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.frontend.rc | nindent 12}}
+      restartPolicy: Always

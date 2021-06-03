@@ -2,16 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    io.kompose.service: consul
-  name: consul
+    {{.Values.appLabel}}: {{.Values.consul.name}}
+  name: {{.Values.consul.name}}
 spec:
   ports:
-  {{- range .Values.ports }}
-  {{ with . }}
+    {{- range .Values.consul.ports }}
     - port: {{ .src }}
       targetPort: {{ .dest }}
-  {{ end }}
-  {{ end }}
+      {{ end }}
       protocol: UDP
   selector:
-    io.kompose.service: consul
+    {{.Values.appLabel}}: {{.Values.consul.name}}

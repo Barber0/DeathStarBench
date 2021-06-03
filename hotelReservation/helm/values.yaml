@@ -2,13 +2,21 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+appLabel: app
+
+imageRegistry: simonalphafang
+imagePullPolicy: Always
+
 consul:
+  name: consul
   image: consul
   tag: latest
   replicas: 1
-  restart: Always
-  cpuReq: 300m
-  cpuLimit: 350m
+  rc:
+    requests:
+      cpu: 10m
+    limits:
+      cpu: 300m
   ports:
     - src: 8300
       dest: 8300
@@ -18,3 +26,20 @@ consul:
       dest: 8500
     - src: 53
       dest: 8600
+      protocol: UDP
+
+frontend:
+  name: frontend
+  image: hotel_reserve_frontend
+  tag: 0.0.2
+  replicas: 1
+  rc:
+    requests:
+      cpu: 10m
+    limits:
+      cpu: 300m
+  cmd:
+    - frontend
+  ports:
+    - src: 5000
+      dest: 5000

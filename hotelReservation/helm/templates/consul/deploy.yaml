@@ -2,35 +2,30 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: consul
-  name: consul
+    {{.Values.appLabel}}: {{.Values.consul.name}}
+  name: {{.Values.consul.name}}
 spec:
   replicas: {{ .Values.consul.replicas }}
   selector:
     matchLabels:
-      io.kompose.service: consul
+      {{.Values.appLabel}}: {{.Values.consul.name}}
   template:
     metadata:
       annotations:
         sidecar.istio.io/statsInclusionPrefixes: cluster.outbound,cluster_manager,listener_manager,http_mixer_filter,tcp_mixer_filter,server,cluster.xds-grp,listener,connection_manager
         sidecar.istio.io/statsInclusionRegexps: http.*
-      creationTimestamp: null
       labels:
-        io.kompose.service: consul
+        {{.Values.appLabel}}: {{.Values.consul.name}}
     spec:
       containers:
         - image: {{ .Values.consul.image }}:{{ .Values.consul.tag }}
-          name: consul
-          ports:
-          {{- range .Values.consul.ports }}
-          {{ with . }}
-            - containerPort: {{ .src }}
-          {{ end }}
-          {{ end }}
-              protocol: UDP
+          name: {{.Values.consul.image}}
           resources:
-            requests:
-              cpu: {{ .Values.consul.cpuReq }}
-            limits:
-              cpu: {{ .Values.consul.cpuLimit }}
-      restartPolicy: {{ .Values.consul.restart }}
+          {{- toYaml .Values.consul.rc | nindent 12}}
+          ports:
+            {{- range .Values.consul.ports }}
+            - containerPort: {{ .src }}
+              protocol: {{.protocol | default "TCP"}}
+      {{- end }}
+
+      restartPolicy: Always
