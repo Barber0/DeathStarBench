@@ -4,18 +4,21 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	"hotel_reserve/services/recommendation"
+	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
-	"strings"
-
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/services/recommendation"
-	"github.com/harlow/go-micro-services/tracing"
 	"strconv"
-	// "github.com/bradfitz/gomemcache/memcache"
+	"strings"
 )
+
+const ServiceName = "recommendation"
 
 func main() {
 	jsonFile, err := os.Open("config.json")
@@ -28,21 +31,21 @@ func main() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	var result map[string]string
-	json.Unmarshal([]byte(byteValue), &result)
+	json.Unmarshal(byteValue, &result)
 
-	serv_port, _ := strconv.Atoi(result["RecommendPort"])
-	serv_ip := ""
-	recommendation_mongo_addr := ""
+	servPort, _ := strconv.Atoi(result["RecommendPort"])
+	servIp := ""
+	recommendationMongoAddr := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
-	if result["Orchestrator"] == "k8s"{
-		recommendation_mongo_addr = "mongodb-recommendation:"+strings.Split(result["RecommendMongoAddress"], ":")[1]
+	if result["Orchestrator"] == "k8s" {
+		recommendationMongoAddr = "mongodb-recommendation:" + strings.Split(result["RecommendMongoAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
-					serv_ip = ipnet.IP.String()
+					servIp = ipnet.IP.String()
 
 				}
 			}
@@ -50,38 +53,40 @@ func main() {
 		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
-		recommendation_mongo_addr = result["RecommendMongoAddress"]
-		serv_ip = result["RecommendIP"]
+		recommendationMongoAddr = result["RecommendMongoAddress"]
+		servIp = result["RecommendIP"]
 		*jaegeraddr = result["jaegerAddress"]
 		*consuladdr = result["consulAddress"]
 	}
 	flag.Parse()
 
-	mongo_session := initializeDatabase(recommendation_mongo_addr)
-	defer mongo_session.Close()
+	mongoSession := initializeDatabase(recommendationMongoAddr)
+	defer mongoSession.Close()
 
+	fmt.Printf("recommendation ip = %s, port = %d\n", servIp, servPort)
 
-
-	fmt.Printf("recommendation ip = %s, port = %d\n", serv_ip, serv_port)
-
-
-	tracer, err := tracing.Init("recommendation", *jaegeraddr)
+	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
 
-	registry, err := registry.NewClient(*consuladdr)
+	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
 		panic(err)
 	}
+
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":2112", nil)
+	}()
 
 	srv := &recommendation.Server{
-		Tracer:   tracer,
-		// Port:     *port,
-		Registry: registry,
-		Port:     serv_port,
-		IpAddr:	  serv_ip,
-		MongoSession: mongo_session,
+		Tracer:       tracer,
+		Registry:     registryCli,
+		Port:         servPort,
+		IpAddr:       servIp,
+		MongoSession: mongoSession,
+		Monitor:      monitor.NewMonitoringHelper(ServiceName),
 	}
 	log.Fatal(srv.Run())
 }

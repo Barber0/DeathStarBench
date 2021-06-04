@@ -3,6 +3,14 @@ package search
 import (
 	// "encoding/json"
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"hotel_reserve/dialer"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	geo "hotel_reserve/services/geo/proto"
+	rate "hotel_reserve/services/rate/proto"
+	"hotel_reserve/tls"
+
 	// F"io/ioutil"
 	"log"
 	"net"
@@ -10,16 +18,12 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/harlow/go-micro-services/dialer"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	geo "github.com/harlow/go-micro-services/services/geo/proto"
-	rate "github.com/harlow/go-micro-services/services/rate/proto"
-	pb "github.com/harlow/go-micro-services/services/search/proto"
 	opentracing "github.com/opentracing/opentracing-go"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+
+	pb "hotel_reserve/services/search/proto"
 )
 
 const name = "srv-search"
@@ -31,8 +35,9 @@ type Server struct {
 
 	Tracer   opentracing.Tracer
 	Port     int
-	IpAddr	 string
+	IpAddr   string
 	Registry *registry.Client
+	Monitor  *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -48,9 +53,10 @@ func (s *Server) Run() error {
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
 		}),
-		grpc.UnaryInterceptor(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		),
+		)),
 	}
 
 	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
@@ -72,19 +78,6 @@ func (s *Server) Run() error {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
-	// register with consul
-	// jsonFile, err := os.Open("config.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// defer jsonFile.Close()
-
-	// byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// var result map[string]string
-	// json.Unmarshal([]byte(byteValue), &result)
 
 	err = s.Registry.Register(name, s.IpAddr, s.Port)
 	if err != nil {

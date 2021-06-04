@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/services/rate"
-	"github.com/harlow/go-micro-services/tracing"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	"hotel_reserve/services/rate"
+	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -17,6 +20,8 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"time"
 )
+
+const ServiceName = "rate"
 
 func main() {
 	jsonFile, err := os.Open("config.json")
@@ -29,70 +34,73 @@ func main() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	var result map[string]string
-	json.Unmarshal([]byte(byteValue), &result)
-	
-	serv_port, _ := strconv.Atoi(result["RatePort"])
-	serv_ip := ""
-	rate_mongo_addr := ""
-	rate_memc_addr := ""
+	json.Unmarshal(byteValue, &result)
+
+	servPort, _ := strconv.Atoi(result["RatePort"])
+	servIp := ""
+	rateMongoAddr := ""
+	rateMemcAddr := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
-	if result["Orchestrator"] == "k8s"{
-		rate_mongo_addr = "mongodb-rate:"+strings.Split(result["RateMongoAddress"], ":")[1]
-		rate_memc_addr = "memcached-rate:"+strings.Split(result["RateMemcAddress"], ":")[1]
+	if result["Orchestrator"] == "k8s" {
+		rateMongoAddr = "mongodb-rate:" + strings.Split(result["RateMongoAddress"], ":")[1]
+		rateMemcAddr = "memcached-rate:" + strings.Split(result["RateMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
-					serv_ip = ipnet.IP.String()
+					servIp = ipnet.IP.String()
 
 				}
 			}
 		}
-		*jaegeraddr = "jaeger:"+strings.Split(result["jaegerAddress"], ":")[1]
+		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
-		rate_mongo_addr = result["RateMongoAddress"]
-		rate_memc_addr = result["RateMemcAddress"]
-		serv_ip = result["RateIP"]
+		rateMongoAddr = result["RateMongoAddress"]
+		rateMemcAddr = result["RateMemcAddress"]
+		servIp = result["RateIP"]
 		*jaegeraddr = result["jaegerAddress"]
 		*consuladdr = result["consulAddress"]
 	}
 	flag.Parse()
-	
 
-	mongo_session := initializeDatabase(rate_mongo_addr)
+	mongoSession := initializeDatabase(rateMongoAddr)
 
-	fmt.Printf("rate memc addr port = %s\n", rate_memc_addr)
-	memc_client := memcache.New(rate_memc_addr)
-	memc_client.Timeout = time.Second * 2
-	memc_client.MaxIdleConns = 512
+	fmt.Printf("rate memc addr port = %s\n", rateMemcAddr)
+	memcClient := memcache.New(rateMemcAddr)
+	memcClient.Timeout = time.Second * 2
+	memcClient.MaxIdleConns = 512
 
-	defer mongo_session.Close()
+	defer mongoSession.Close()
 
-	fmt.Printf("rate ip = %s, port = %d\n", serv_ip, serv_port)
+	fmt.Printf("rate ip = %s, port = %d\n", servIp, servPort)
 
-
-
-	tracer, err := tracing.Init("rate", *jaegeraddr)
+	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
 
-	registry, err := registry.NewClient(*consuladdr)
+	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
 		panic(err)
 	}
+
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":2112", nil)
+	}()
 
 	srv := &rate.Server{
-		Tracer:   tracer,
+		Tracer: tracer,
 		// Port:     *port,
-		Registry: registry,
-		Port:     serv_port,
-		IpAddr:	  serv_ip,
-		MongoSession: mongo_session,
-		MemcClient: memc_client,
+		Registry:     registryCli,
+		Port:         servPort,
+		IpAddr:       servIp,
+		MongoSession: mongoSession,
+		MemcClient:   memcClient,
+		Monitor:      monitor.NewMonitoringHelper(ServiceName),
 	}
 	log.Fatal(srv.Run())
 }

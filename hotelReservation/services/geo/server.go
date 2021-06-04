@@ -3,19 +3,20 @@ package geo
 import (
 	// "encoding/json"
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	// "io/ioutil"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	pb "hotel_reserve/services/geo/proto"
+	"hotel_reserve/tls"
+
 	"log"
 	"net"
-	// "os"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/hailocab/go-geoindex"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	pb "github.com/harlow/go-micro-services/services/geo/proto"
 	opentracing "github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -33,11 +34,12 @@ type Server struct {
 	index *geoindex.ClusteringIndex
 	uuid  string
 
-	Registry *registry.Client
-	Tracer   opentracing.Tracer
-	Port     int
-	IpAddr	 string
-	MongoSession 	*mgo.Session
+	Registry     *registry.Client
+	Tracer       opentracing.Tracer
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Monitor      *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -50,12 +52,6 @@ func (s *Server) Run() error {
 		s.index = newGeoIndex(s.MongoSession)
 	}
 
-	// opts := []grpc.ServerOption {
-	// 	grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-	// 		PermitWithoutStream: true,
-	// 	}),
-	// }
-
 	opts := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			Timeout: 120 * time.Second,
@@ -64,7 +60,10 @@ func (s *Server) Run() error {
 			PermitWithoutStream: true,
 		}),
 		grpc.UnaryInterceptor(
-			otgrpc.OpenTracingServerInterceptor(s.Tracer),
+			grpc_middleware.ChainUnaryServer(
+				s.Monitor.MetricInterceptor(),
+				otgrpc.OpenTracingServerInterceptor(s.Tracer),
+			),
 		),
 	}
 

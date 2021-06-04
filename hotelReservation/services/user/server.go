@@ -2,18 +2,21 @@ package user
 
 import (
 	"crypto/sha256"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	"hotel_reserve/tls"
+
 	// "encoding/json"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	pb "github.com/harlow/go-micro-services/services/user/proto"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	pb "hotel_reserve/services/user/proto"
 	// "io/ioutil"
 	"log"
 	"net"
@@ -27,11 +30,12 @@ const name = "srv-user"
 type Server struct {
 	users map[string]string
 
-	Tracer   opentracing.Tracer
-	Registry *registry.Client
-	Port     int
-	IpAddr	 string
-	MongoSession 	*mgo.Session
+	Tracer       opentracing.Tracer
+	Registry     *registry.Client
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Monitor      *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -51,9 +55,10 @@ func (s *Server) Run() error {
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
 		}),
-		grpc.UnaryInterceptor(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		),
+		)),
 	}
 
 	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
@@ -119,9 +124,9 @@ func (s *Server) CheckUser(ctx context.Context, req *pb.Request) (*pb.Result, er
 	// }
 	res.Correct = false
 	if true_pass, found := s.users[req.Username]; found {
-	    res.Correct = pass == true_pass
+		res.Correct = pass == true_pass
 	}
-	
+
 	// res.Correct = user.Password == pass
 
 	// fmt.Printf("CheckUser %d\n", res.Correct)

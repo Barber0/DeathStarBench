@@ -14,6 +14,9 @@ spec:
     - name: "8083"
       port: 8083
       targetPort: 8083
+    - port: 2112
+      name: "2112"
+      targetPort: 2112
   selector:
     io.kompose.service: geo
 status:

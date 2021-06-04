@@ -2,11 +2,11 @@ package main
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"strconv"
 	"log"
-	"fmt"
+	"strconv"
 )
 
 type User struct {

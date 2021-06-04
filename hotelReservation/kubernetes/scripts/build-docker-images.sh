@@ -4,7 +4,7 @@ cd $(dirname $0)/../..
 
 EXEC=docker
 USER="simonalphafang"
-TAG="0.0.2"
+TAG="0.0.3-prom"
 ROOT_FOLDER=$(pwd)
 
 PROTO_NAME=hotel_reserve_proto
@@ -18,4 +18,3 @@ for mod in frontend geo profile rate recommendation reserve search user; do
   $EXEC tag $FULL_PROTO_NAME $FULL_MOD_NAME
   $EXEC push $FULL_MOD_NAME
 done
-

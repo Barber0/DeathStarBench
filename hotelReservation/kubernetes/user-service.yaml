@@ -14,7 +14,10 @@ spec:
     - name: "8086"
       port: 8086
       targetPort: 8086
+    - port: 2112
+      name: "2112"
+      targetPort: 2112
   selector:
     io.kompose.service: user
 status:
-  loadBalancer: {}
+  loadBalancer: { }

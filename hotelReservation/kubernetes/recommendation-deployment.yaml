@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: recommendation
-  strategy: {}
+  strategy: { }
   template:
     metadata:
       annotations:
@@ -30,11 +30,12 @@ spec:
       containers:
         - command:
             - recommendation
-          image: simonalphafang/hotel_reserve_recommendation
+          image: simonalphafang/hotel_reserve_recommendation:0.0.3-prom
           imagePullPolicy: Always
           name: hotel-reserv-recommendation
           ports:
             - containerPort: 8085
+            - containerPort: 2112
           resources:
             requests:
               cpu: 10m
@@ -43,5 +44,9 @@ spec:
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
       restartPolicy: Always
-status: {}
+status: { }

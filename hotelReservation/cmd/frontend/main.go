@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"hotel_reserve/registry"
+	"hotel_reserve/services/frontend"
+	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/services/frontend"
-	"github.com/harlow/go-micro-services/tracing"
 )
 
 

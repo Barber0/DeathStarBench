@@ -3,8 +3,13 @@ package rate
 import (
 	"encoding/json"
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	"hotel_reserve/tls"
+
 	// "io/ioutil"
 	"log"
 	"net"
@@ -13,13 +18,11 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	pb "github.com/harlow/go-micro-services/services/rate/proto"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+	pb "hotel_reserve/services/rate/proto"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"strings"
@@ -29,12 +32,13 @@ const name = "srv-rate"
 
 // Server implements the rate service
 type Server struct {
-	Tracer    opentracing.Tracer
-	Port      int
-	IpAddr	 string
-	MongoSession 	*mgo.Session
-	Registry  *registry.Client
-	MemcClient *memcache.Client
+	Tracer       opentracing.Tracer
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Registry     *registry.Client
+	MemcClient   *memcache.Client
+	Monitor      *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -50,9 +54,10 @@ func (s *Server) Run() error {
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
 		}),
-		grpc.UnaryInterceptor(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		),
+		)),
 	}
 
 	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
@@ -110,16 +115,16 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 		item, err := s.MemcClient.Get(hotelID)
 		if err == nil {
 			// memcached hit
-			rate_strs := strings.Split(string(item.Value), "\n")
+			rateStrs := strings.Split(string(item.Value), "\n")
 
 			// fmt.Printf("memc hit, hotelId = %s\n", hotelID)
-			fmt.Println(rate_strs)
+			fmt.Println(rateStrs)
 
-			for _, rate_str := range rate_strs {
-				if len(rate_str) != 0 {
-					rate_p := new(pb.RatePlan)
-					json.Unmarshal(item.Value, rate_p)
-					ratePlans = append(ratePlans, rate_p)
+			for _, rateStr := range rateStrs {
+				if len(rateStr) != 0 {
+					rateP := new(pb.RatePlan)
+					json.Unmarshal(item.Value, rateP)
+					ratePlans = append(ratePlans, rateP)
 				}
 			}
 		} else if err == memcache.ErrCacheMiss {
@@ -140,7 +145,7 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 			} else {
 				for _, r := range tmpRatePlans {
 					ratePlans = append(ratePlans, r)
-					rate_json , err := json.Marshal(r)
+					rate_json, err := json.Marshal(r)
 					if err != nil {
 						fmt.Printf("json.Marshal err = %s\n", err)
 					}

@@ -3,8 +3,14 @@ package profile
 import (
 	"encoding/json"
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	pb "hotel_reserve/services/profile/proto"
+	"hotel_reserve/tls"
+
 	// "io/ioutil"
 	"log"
 	"net"
@@ -12,9 +18,6 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	pb "github.com/harlow/go-micro-services/services/profile/proto"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -28,12 +31,13 @@ const name = "srv-profile"
 
 // Server implements the profile service
 type Server struct {
-	Tracer   opentracing.Tracer
-	Port     int
-	IpAddr	 string
-	MongoSession	*mgo.Session
-	Registry *registry.Client
-	MemcClient *memcache.Client
+	Tracer       opentracing.Tracer
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Registry     *registry.Client
+	MemcClient   *memcache.Client
+	Monitor      *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -51,18 +55,19 @@ func (s *Server) Run() error {
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
 		}),
-		grpc.UnaryInterceptor(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		),
+		)),
 	}
 
-	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
-		opts = append(opts, tlsopt)
+	if tlsOpt := tls.GetServerOpt(); tlsOpt != nil {
+		opts = append(opts, tlsOpt)
 	}
 
 	srv := grpc.NewServer(opts...)
 
-	pb.RegisterProfileServer(srv, s)
+	//pb.RegisterProfileServer(srv, s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.Port))
 	if err != nil {

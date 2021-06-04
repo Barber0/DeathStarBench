@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: frontend
-  strategy: {}
+  strategy: { }
   template:
     metadata:
       annotations:
@@ -30,18 +30,23 @@ spec:
       containers:
         - command:
             - frontend
-          image: simonalphafang/hotel_reserve_frontend
+          image: simonalphafang/hotel_reserve_frontend:0.0.3-prom
           imagePullPolicy: Always
           name: hotel-reserv-frontend
           ports:
             - containerPort: 5000
+            - containerPort: 2112
           resources:
             requests:
               cpu: 10m
             limits:
               cpu: 350m
-          env: 
+          env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
       restartPolicy: Always
-status: {}
+status: { }

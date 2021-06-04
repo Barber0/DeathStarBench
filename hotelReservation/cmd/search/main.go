@@ -4,17 +4,22 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	"hotel_reserve/services/search"
+	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"strings"
 
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/services/search"
-	"github.com/harlow/go-micro-services/tracing"
 	"strconv"
 )
+
+const ServiceName = "search"
 
 func main() {
 	jsonFile, err := os.Open("config.json")
@@ -28,37 +33,34 @@ func main() {
 
 	var result map[string]string
 	json.Unmarshal([]byte(byteValue), &result)
-	serv_ip := ""
+	servIp := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
-	serv_port, _ := strconv.Atoi(result["SearchPort"])
-	if result["Orchestrator"] == "k8s"{
-		addrs, _ := net.InterfaceAddrs()
-		for _, a := range addrs {
-			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-				if ipnet.IP.To4() != nil {
-					serv_ip = ipnet.IP.String()
-
+	servPort, _ := strconv.Atoi(result["SearchPort"])
+	if result["Orchestrator"] == "k8s" {
+		address, _ := net.InterfaceAddrs()
+		for _, a := range address {
+			if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+				if ipNet.IP.To4() != nil {
+					servIp = ipNet.IP.String()
 				}
 			}
 		}
-		*jaegeraddr =  "jaeger:"+strings.Split(result["jaegerAddress"], ":")[1]
+		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 
 	} else {
-		serv_ip	= result["SearchIP"]
+		servIp = result["SearchIP"]
 		*jaegeraddr = result["jaegerAddress"]
 		*consuladdr = result["consulAddress"]
 
 	}
 	flag.Parse()
 
+	fmt.Printf("search ip = %s, port = %d\n", servIp, servPort)
 
-
-	fmt.Printf("search ip = %s, port = %d\n", serv_ip, serv_port)
-
-	tracer, err := tracing.Init("search", *jaegeraddr)
+	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
@@ -68,12 +70,17 @@ func main() {
 		panic(err)
 	}
 
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":2112", nil)
+	}()
+
 	srv := &search.Server{
 		Tracer:   tracer,
-		// Port:     *port,
-		Port:     serv_port,
-		IpAddr:	  serv_ip,
+		Port:     servPort,
+		IpAddr:   servIp,
 		Registry: registry,
+		Monitor:  monitor.NewMonitoringHelper(ServiceName),
 	}
 	log.Fatal(srv.Run())
 }

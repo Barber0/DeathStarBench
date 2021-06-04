@@ -3,17 +3,20 @@ package recommendation
 import (
 	// "encoding/json"
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/hailocab/go-geoindex"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	pb "github.com/harlow/go-micro-services/services/recommendation/proto"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	pb "hotel_reserve/services/recommendation/proto"
+	"hotel_reserve/tls"
+
 	// "io/ioutil"
 	"log"
 	"math"
@@ -28,12 +31,13 @@ const name = "srv-recommendation"
 
 // Server implements the recommendation service
 type Server struct {
-	hotels map[string]Hotel
-	Tracer   opentracing.Tracer
-	Port     int
-	IpAddr	 string
-	MongoSession	*mgo.Session
-	Registry *registry.Client
+	hotels       map[string]Hotel
+	Tracer       opentracing.Tracer
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Registry     *registry.Client
+	Monitor      *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -53,9 +57,10 @@ func (s *Server) Run() error {
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
 		}),
-		grpc.UnaryInterceptor(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		),
+		)),
 	}
 
 	if tlsopt := tls.GetServerOpt(); tlsopt != nil {

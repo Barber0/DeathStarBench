@@ -4,20 +4,24 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	"hotel_reserve/services/geo"
+	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/services/geo"
-	"github.com/harlow/go-micro-services/tracing"
 )
 
+const ServiceName = "geo"
+
 func main() {
-	
+
 	jsonFile, err := os.Open("config.json")
 	if err != nil {
 		fmt.Println(err)
@@ -29,57 +33,59 @@ func main() {
 
 	var result map[string]string
 	json.Unmarshal([]byte(byteValue), &result)
-	serv_port, _ := strconv.Atoi(result["GeoPort"])
-	serv_ip := ""
-	geo_mongo_addr := ""
+	servPort, _ := strconv.Atoi(result["GeoPort"])
+	servIp := ""
+	geoMongoAddr := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
-	if result["Orchestrator"] == "k8s"{
-		geo_mongo_addr = "mongodb-geo:"+strings.Split(result["GeoMongoAddress"], ":")[1]
-		addrs, _ := net.InterfaceAddrs()
-		for _, a := range addrs {
-			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-				if ipnet.IP.To4() != nil {
-					serv_ip = ipnet.IP.String()
-
+	if result["Orchestrator"] == "k8s" {
+		geoMongoAddr = "mongodb-geo:" + strings.Split(result["GeoMongoAddress"], ":")[1]
+		address, _ := net.InterfaceAddrs()
+		for _, a := range address {
+			if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+				if ipNet.IP.To4() != nil {
+					servIp = ipNet.IP.String()
 				}
 			}
 		}
 		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
-		geo_mongo_addr = result["GeoMongoAddress"]
-		serv_ip = result["GeoIP"]
+		geoMongoAddr = result["GeoMongoAddress"]
+		servIp = result["GeoIP"]
 		*jaegeraddr = result["jaegerAddress"]
 		*consuladdr = result["consulAddress"]
 	}
 	flag.Parse()
 
-	mongo_session := initializeDatabase(geo_mongo_addr)
-	defer mongo_session.Close()
+	mongoSession := initializeDatabase(geoMongoAddr)
+	defer mongoSession.Close()
 
+	fmt.Printf("geo ip = %s, port = %d\n", servIp, servPort)
 
-	fmt.Printf("geo ip = %s, port = %d\n", serv_ip, serv_port)
-	
-
-	tracer, err := tracing.Init("geo", *jaegeraddr)
+	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
 
-	registry, err := registry.NewClient(*consuladdr)
+	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
 		panic(err)
 	}
+
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":2112", nil)
+	}()
 
 	srv := &geo.Server{
-		// Port:     *port,
-		Port:     serv_port,
-		IpAddr:	  serv_ip,
-		Tracer:   tracer,
-		Registry: registry,
-		MongoSession: mongo_session,
+		Port:         servPort,
+		IpAddr:       servIp,
+		Tracer:       tracer,
+		Registry:     registryCli,
+		MongoSession: mongoSession,
+		Monitor:      monitor.NewMonitoringHelper(ServiceName),
 	}
 	log.Fatal(srv.Run())
 }

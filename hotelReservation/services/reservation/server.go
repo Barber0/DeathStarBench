@@ -3,16 +3,19 @@ package reservation
 import (
 	// "encoding/json"
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/tls"
-	pb "github.com/harlow/go-micro-services/services/reservation/proto"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"hotel_reserve/monitor"
+	"hotel_reserve/registry"
+	pb "hotel_reserve/services/reservation/proto"
+	"hotel_reserve/tls"
+
 	// "io/ioutil"
 	"log"
 	"net"
@@ -28,12 +31,13 @@ const name = "srv-reservation"
 
 // Server implements the user service
 type Server struct {
-	Tracer   opentracing.Tracer
-	Port     int
-	IpAddr	 string
-	MongoSession	*mgo.Session
-	Registry *registry.Client
-	MemcClient *memcache.Client
+	Tracer       opentracing.Tracer
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Registry     *registry.Client
+	MemcClient   *memcache.Client
+	Monitor      *monitor.MonitoringHelper
 }
 
 // Run starts the server
@@ -49,9 +53,10 @@ func (s *Server) Run() error {
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
 		}),
-		grpc.UnaryInterceptor(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		),
+		)),
 	}
 
 	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
@@ -66,21 +71,6 @@ func (s *Server) Run() error {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
-	// register the service
-	// jsonFile, err := os.Open("config.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// defer jsonFile.Close()
-
-	// byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// var result map[string]string
-	// json.Unmarshal([]byte(byteValue), &result)
-
-	// fmt.Printf("In reservation s.IpAddr = %s, port = %d\n", s.IpAddr, s.Port)
 
 	err = s.Registry.Register(name, s.IpAddr, s.Port)
 	if err != nil {
@@ -113,16 +103,16 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 	inDate, _ := time.Parse(
 		time.RFC3339,
-		req.InDate + "T12:00:00+00:00")
+		req.InDate+"T12:00:00+00:00")
 
 	outDate, _ := time.Parse(
 		time.RFC3339,
-		req.OutDate + "T12:00:00+00:00")
+		req.OutDate+"T12:00:00+00:00")
 	hotelId := req.HotelId[0]
 
 	indate := inDate.String()[0:10]
 
-	memc_date_num_map := make(map[string] int)
+	memc_date_num_map := make(map[string]int)
 
 	for inDate.Before(outDate) {
 		// check reservations
@@ -147,7 +137,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			if err != nil {
 				panic(err)
 			}
-			
+
 			for _, r := range reserve {
 				count += r.Number
 			}
@@ -158,7 +148,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			fmt.Printf("Memmcached error = %s\n", err)
 			panic(err)
 		}
-		
+
 		// check capacity
 		// check memc capacity
 		memc_cap_key := hotelId + "_cap"
@@ -184,7 +174,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			panic(err)
 		}
 
-		if count + int(req.RoomNumber) > hotel_cap {
+		if count+int(req.RoomNumber) > hotel_cap {
 			return res, nil
 		}
 		indate = outdate
@@ -197,7 +187,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 	inDate, _ = time.Parse(
 		time.RFC3339,
-		req.InDate + "T12:00:00+00:00")
+		req.InDate+"T12:00:00+00:00")
 
 	indate = inDate.String()[0:10]
 
@@ -209,7 +199,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			CustomerName: req.CustomerName,
 			InDate:       indate,
 			OutDate:      outdate,
-			Number:       int(req.RoomNumber),})
+			Number:       int(req.RoomNumber)})
 		if err != nil {
 			panic(err)
 		}
@@ -241,11 +231,11 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 		// fmt.Printf("reservation check hotel %s\n", hotelId)
 		inDate, _ := time.Parse(
 			time.RFC3339,
-			req.InDate + "T12:00:00+00:00")
+			req.InDate+"T12:00:00+00:00")
 
 		outDate, _ := time.Parse(
 			time.RFC3339,
-			req.OutDate + "T12:00:00+00:00")
+			req.OutDate+"T12:00:00+00:00")
 
 		indate := inDate.String()[0:10]
 
@@ -293,7 +283,7 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				// memcached hit
 				hotel_cap, _ = strconv.Atoi(string(item.Value))
 				// fmt.Printf("memcached hit %s = %d\n", memc_cap_key, hotel_cap)
-			} else if err == memcache.ErrCacheMiss { 
+			} else if err == memcache.ErrCacheMiss {
 				var num number
 				err = c1.Find(&bson.M{"hotelId": hotelId}).One(&num)
 				if err != nil {
@@ -307,7 +297,7 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				panic(err)
 			}
 
-			if count + int(req.RoomNumber) > hotel_cap {
+			if count+int(req.RoomNumber) > hotel_cap {
 				break
 			}
 			indate = outdate
@@ -330,6 +320,6 @@ type reservation struct {
 }
 
 type number struct {
-	HotelId      string `bson:"hotelId"`
-	Number       int    `bson:"numberOfRoom"`
+	HotelId string `bson:"hotelId"`
+	Number  int    `bson:"numberOfRoom"`
 }

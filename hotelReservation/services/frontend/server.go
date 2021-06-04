@@ -3,17 +3,17 @@ package frontend
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/harlow/go-micro-services/services/recommendation/proto"
-	"github.com/harlow/go-micro-services/services/reservation/proto"
-	"github.com/harlow/go-micro-services/services/user/proto"
+	"hotel_reserve/dialer"
+	"hotel_reserve/registry"
+	profile "hotel_reserve/services/profile/proto"
+	recommendation "hotel_reserve/services/recommendation/proto"
+	reservation "hotel_reserve/services/reservation/proto"
+	search "hotel_reserve/services/search/proto"
+	user "hotel_reserve/services/user/proto"
+	"hotel_reserve/tracing"
 	"net/http"
 	"strconv"
 
-	"github.com/harlow/go-micro-services/dialer"
-	"github.com/harlow/go-micro-services/registry"
-	"github.com/harlow/go-micro-services/services/profile/proto"
-	"github.com/harlow/go-micro-services/services/search/proto"
-	"github.com/harlow/go-micro-services/tracing"
 	"github.com/opentracing/opentracing-go"
 )
 
@@ -24,10 +24,10 @@ type Server struct {
 	recommendationClient recommendation.RecommendationClient
 	userClient           user.UserClient
 	reservationClient    reservation.ReservationClient
-	IpAddr	 string
-	Port     int
-	Tracer   opentracing.Tracer
-	Registry *registry.Client
+	IpAddr               string
+	Port                 int
+	Tracer               opentracing.Tracer
+	Registry             *registry.Client
 }
 
 // Run the server
