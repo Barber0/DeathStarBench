@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom-pushgateway
+  labels:
+    app: prom-pushgateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prom-pushgateway
+  template:
+    metadata:
+      labels:
+        app: prom-pushgateway
+    spec:
+      containers:
+        - image: prom/pushgateway:v1.4.0
+          name: prom-pushgateway
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9091
+      restartPolicy: Always

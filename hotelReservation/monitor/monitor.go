@@ -2,9 +2,12 @@ package monitor
 
 import (
 	context2 "context"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/push"
 	"google.golang.org/grpc"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -21,6 +24,14 @@ const (
 	LabelMethodName  = "method"
 )
 
+func GetPodName() string {
+	podName := os.Getenv(EnvPodName)
+	if strings.TrimSpace(podName) == "" {
+		podName = os.Getenv(EnvHostName)
+	}
+	return podName
+}
+
 type MonitoringHelper struct {
 	serviceName string
 	podName     string
@@ -28,10 +39,7 @@ type MonitoringHelper struct {
 }
 
 func NewMonitoringHelper(serviceName string) *MonitoringHelper {
-	podName := os.Getenv(EnvPodName)
-	if strings.TrimSpace(podName) == "" {
-		podName = os.Getenv(EnvHostName)
-	}
+	podName := GetPodName()
 
 	helper := &MonitoringHelper{
 		serviceName: serviceName,
@@ -57,6 +65,22 @@ func (mh *MonitoringHelper) getServerMetric(methodName string) prometheus.Gauge 
 		},
 	})
 
+	promRegistry := prometheus.NewRegistry()
+	if err := promRegistry.Register(metric); err != nil {
+		log.Printf("register metric[%s] failed: %v\n", methodName, err)
+		return nil
+	}
+
+	pusher := push.New(
+		"prom-pushgateway:9091",
+		fmt.Sprintf("server_handle_duration_%s_%s",
+			mh.serviceName,
+			methodName,
+		),
+	)
+
+	pusher.Gatherer(promRegistry)
+	pusher.Add()
 	return metric
 }
 
@@ -67,7 +91,10 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		endTime := time.Now()
 
 		handleDurData := endTime.Sub(startTime).Milliseconds()
-		mh.getServerMetric(info.FullMethod).Set(float64(handleDurData))
+
+		if metric := mh.getServerMetric(info.FullMethod); metric != nil {
+			metric.Set(float64(handleDurData))
+		}
 		return
 	}
 }

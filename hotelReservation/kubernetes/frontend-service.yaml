@@ -16,5 +16,6 @@ spec:
       targetPort: 5000
   selector:
     io.kompose.service: frontend
+  clusterIP: None
 status:
   loadBalancer: { }

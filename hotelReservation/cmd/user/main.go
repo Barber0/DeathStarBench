@@ -11,7 +11,6 @@ import (
 	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -42,15 +41,9 @@ func main() {
 
 	if result["Orchestrator"] == "k8s" {
 		userMongoAddr = "mongodb-user:" + strings.Split(result["UserMongoAddress"], ":")[1]
-		addrs, _ := net.InterfaceAddrs()
-		for _, a := range addrs {
-			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-				if ipnet.IP.To4() != nil {
-					servIp = ipnet.IP.String()
 
-				}
-			}
-		}
+		servIp = fmt.Sprintf("%s.%s", monitor.GetPodName(), ServiceName)
+
 		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {

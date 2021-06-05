@@ -19,5 +19,6 @@ spec:
       targetPort: 2112
   selector:
     io.kompose.service: search
+  clusterIP: None
 status:
-  loadBalancer: {}
+  loadBalancer: { }
