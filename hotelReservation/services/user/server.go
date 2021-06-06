@@ -3,6 +3,7 @@ package user
 import (
 	"crypto/sha256"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"hotel_reserve/monitor"
 	"hotel_reserve/registry"
 	"hotel_reserve/tls"
@@ -56,6 +57,7 @@ func (s *Server) Run() error {
 			PermitWithoutStream: true,
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			grpc_prometheus.UnaryServerInterceptor,
 			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
@@ -66,8 +68,9 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
-
 	pb.RegisterUserServer(srv, s)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+	grpc_prometheus.Register(srv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.Port))
 	if err != nil {

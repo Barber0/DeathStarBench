@@ -4,6 +4,7 @@ import (
 	// "encoding/json"
 	"fmt"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
@@ -54,6 +55,7 @@ func (s *Server) Run() error {
 			PermitWithoutStream: true,
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			grpc_prometheus.UnaryServerInterceptor,
 			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
@@ -64,8 +66,9 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
-
 	pb.RegisterReservationServer(srv, s)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+	grpc_prometheus.Register(srv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.Port))
 	if err != nil {

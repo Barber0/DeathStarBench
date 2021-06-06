@@ -4,6 +4,7 @@ import (
 	// "encoding/json"
 	"fmt"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"hotel_reserve/dialer"
 	"hotel_reserve/monitor"
 	"hotel_reserve/registry"
@@ -54,6 +55,7 @@ func (s *Server) Run() error {
 			PermitWithoutStream: true,
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			grpc_prometheus.UnaryServerInterceptor,
 			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
@@ -65,6 +67,8 @@ func (s *Server) Run() error {
 
 	srv := grpc.NewServer(opts...)
 	pb.RegisterSearchServer(srv, s)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+	grpc_prometheus.Register(srv)
 
 	// init grpc clients
 	if err := s.initGeoClient("srv-geo"); err != nil {

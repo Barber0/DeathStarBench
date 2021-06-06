@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"hotel_reserve/monitor"
@@ -56,6 +57,7 @@ func (s *Server) Run() error {
 			PermitWithoutStream: true,
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			grpc_prometheus.UnaryServerInterceptor,
 			s.Monitor.MetricInterceptor(),
 			otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
@@ -67,6 +69,8 @@ func (s *Server) Run() error {
 
 	srv := grpc.NewServer(opts...)
 	pb.RegisterProfileServer(srv, s)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+	grpc_prometheus.Register(srv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.Port))
 	if err != nil {
