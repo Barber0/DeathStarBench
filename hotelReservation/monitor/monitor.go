@@ -3,6 +3,7 @@ package monitor
 import (
 	context2 "context"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/grpc"
 	"log"
 	"os"
@@ -57,7 +58,7 @@ func (mh *MonitoringHelper) getServerMetric(methodName string) (metric prometheu
 		return metric
 	}
 
-	metric = prometheus.NewGauge(prometheus.GaugeOpts{
+	metric = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: MetricName,
 		ConstLabels: map[string]string{
 			LabelServiceName: mh.serviceName,
@@ -78,7 +79,10 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		endTime := time.Now()
 
 		handleDurData := endTime.Sub(startTime).Milliseconds()
-		mh.getServerMetric(info.FullMethod).Set(float64(handleDurData))
+
+		if metric := mh.getServerMetric(info.FullMethod); metric != nil {
+			metric.Set(float64(handleDurData))
+		}
 		return
 	}
 }

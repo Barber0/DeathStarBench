@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_reserve:0.0.5-auto
+          image: simonalphafang/hotel_reserve_proto:0.0.6
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
           ports:
