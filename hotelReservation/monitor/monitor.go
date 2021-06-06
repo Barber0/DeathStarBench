@@ -4,6 +4,7 @@ import (
 	context2 "context"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -41,8 +42,17 @@ func NewMonitoringHelper(serviceName string) *MonitoringHelper {
 	return helper
 }
 
-func (mh *MonitoringHelper) getServerMetric(methodName string) prometheus.Gauge {
-	metric, ok := mh.metricMap[methodName]
+func (mh *MonitoringHelper) getServerMetric(methodName string) (metric prometheus.Gauge) {
+	defer func() {
+		if pa := recover(); pa != nil {
+			log.Printf("register failed: %v\n", pa)
+			metric = nil
+		}
+	}()
+
+	var ok bool
+
+	metric, ok = mh.metricMap[methodName]
 	if ok {
 		return metric
 	}
@@ -55,6 +65,8 @@ func (mh *MonitoringHelper) getServerMetric(methodName string) prometheus.Gauge 
 			LabelMethodName:  methodName,
 		},
 	})
+
+	mh.metricMap[methodName] = metric
 
 	return metric
 }
