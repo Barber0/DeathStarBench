@@ -66,8 +66,7 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
-
-	//pb.RegisterProfileServer(srv, s)
+	pb.RegisterProfileServer(srv, s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.Port))
 	if err != nil {
