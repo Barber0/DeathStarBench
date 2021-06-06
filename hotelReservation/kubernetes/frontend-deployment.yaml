@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - frontend
-          image: simonalphafang/hotel_reserve_frontend:0.0.3-prom
+          image: simonalphafang/hotel_reserve_frontend:0.0.5
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-frontend
           ports:

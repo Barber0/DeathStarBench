@@ -3,7 +3,6 @@ package monitor
 import (
 	context2 "context"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/grpc"
 	"os"
 	"strings"
@@ -48,7 +47,7 @@ func (mh *MonitoringHelper) getServerMetric(methodName string) prometheus.Gauge 
 		return metric
 	}
 
-	metric = promauto.NewGauge(prometheus.GaugeOpts{
+	metric = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: MetricName,
 		ConstLabels: map[string]string{
 			LabelServiceName: mh.serviceName,
