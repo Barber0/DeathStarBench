@@ -183,7 +183,7 @@ type point struct {
 	Plon float64 `bson:"lon"`
 }
 
-// Implement Point interface
+// Lat Implement Point interface
 func (p *point) Lat() float64 { return p.Plat }
 func (p *point) Lon() float64 { return p.Plon }
 func (p *point) Id() string   { return p.Pid }

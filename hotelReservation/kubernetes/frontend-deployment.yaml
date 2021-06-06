@@ -31,7 +31,7 @@ spec:
         - command:
             - frontend
           image: simonalphafang/hotel_reserve_frontend:0.0.3-prom
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           name: hotel-reserv-frontend
           ports:
             - containerPort: 5000
@@ -42,6 +42,8 @@ spec:
             limits:
               cpu: 350m
           env:
+            - name: GRPC_GO_REQUIRE_HANDSHAKE
+              value: "off"
             - name: MY_POD_NAME
               valueFrom:
                 fieldRef:

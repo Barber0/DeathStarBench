@@ -4,6 +4,9 @@ metadata:
   annotations:
     kompose.cmd: kompose convert
     kompose.version: 1.22.0 (955b78124)
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "2112"
   creationTimestamp: null
   labels:
     app: recommendation
