@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/tls"
 
@@ -36,7 +36,7 @@ type Server struct {
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
-	Monitor      *monitor.MonitoringHelper
+	Monitor      *common.MonitoringHelper
 }
 
 // Run starts the server

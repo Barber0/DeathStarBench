@@ -15,7 +15,6 @@ import (
 	"strings"
 )
 
-
 func main() {
 	jsonFile, err := os.Open("config.json")
 	if err != nil {
@@ -28,35 +27,30 @@ func main() {
 
 	var result map[string]string
 	json.Unmarshal([]byte(byteValue), &result)
-	serv_ip := ""
+	servIp := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
-	serv_port, _ := strconv.Atoi(result["FrontendPort"])
-	if result["Orchestrator"] == "k8s"{
+	servPort, _ := strconv.Atoi(result["FrontendPort"])
+	if result["Orchestrator"] == "k8s" {
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
-					serv_ip = ipnet.IP.String()
-
+					servIp = ipnet.IP.String()
 				}
 			}
 		}
-			*jaegeraddr =  "jaeger:"+strings.Split(result["jaegerAddress"], ":")[1]
-			*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
-
+		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
+		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
-		serv_ip	= result["FrontendIP"]
-			*jaegeraddr = result["jaegerAddress"]
-			*consuladdr = result["consulAddress"]
-
+		servIp = result["FrontendIP"]
+		*jaegeraddr = result["jaegerAddress"]
+		*consuladdr = result["consulAddress"]
 	}
 	flag.Parse()
 
-	fmt.Printf("frontend ip = %s, port = %d\n", serv_ip, serv_port)
-
-
+	fmt.Printf("frontend ip = %s, port = %d\n", servIp, servPort)
 
 	tracer, err := tracing.Init("frontend", *jaegeraddr)
 	if err != nil {
@@ -71,8 +65,8 @@ func main() {
 	srv := &frontend.Server{
 		Registry: registry,
 		Tracer:   tracer,
-		IpAddr:	  serv_ip,
-		Port:     serv_port,
+		IpAddr:   servIp,
+		Port:     servPort,
 	}
 	log.Fatal(srv.Run())
 }

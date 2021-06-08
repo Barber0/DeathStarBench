@@ -5,8 +5,8 @@ import (
 	"fmt"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"hotel_reserve/common"
 	"hotel_reserve/dialer"
-	"hotel_reserve/monitor"
 	"hotel_reserve/registry"
 	geo "hotel_reserve/services/geo/proto"
 	rate "hotel_reserve/services/rate/proto"
@@ -38,7 +38,7 @@ type Server struct {
 	Port     int
 	IpAddr   string
 	Registry *registry.Client
-	Monitor  *monitor.MonitoringHelper
+	Monitor  *common.MonitoringHelper
 }
 
 // Run starts the server
@@ -71,10 +71,10 @@ func (s *Server) Run() error {
 	grpc_prometheus.Register(srv)
 
 	// init grpc clients
-	if err := s.initGeoClient("srv-geo"); err != nil {
+	if err := s.initGeoClient(common.ServiceGeo); err != nil {
 		return err
 	}
-	if err := s.initRateClient("srv-rate"); err != nil {
+	if err := s.initRateClient(common.ServiceRate); err != nil {
 		return err
 	}
 
@@ -97,9 +97,9 @@ func (s *Server) Shutdown() {
 }
 
 func (s *Server) initGeoClient(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -110,9 +110,9 @@ func (s *Server) initGeoClient(name string) error {
 }
 
 func (s *Server) initRateClient(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {

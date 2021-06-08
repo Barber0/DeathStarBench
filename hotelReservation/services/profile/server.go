@@ -7,7 +7,7 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	pb "hotel_reserve/services/profile/proto"
 	"hotel_reserve/tls"
@@ -38,7 +38,7 @@ type Server struct {
 	MongoSession *mgo.Session
 	Registry     *registry.Client
 	MemcClient   *memcache.Client
-	Monitor      *monitor.MonitoringHelper
+	Monitor      *common.MonitoringHelper
 }
 
 // Run starts the server

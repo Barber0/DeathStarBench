@@ -26,5 +26,9 @@
   "UserIP": "x.x.x.x",
   "UserPort": "8086",
   "UserMongoAddress": "x.x.x.x:27023",
-  "Orchestrator": "k8s"
+  "Orchestrator": "k8s",
+  "InfluxToken": "kLRKFbu3X-m1qnszgmyV_p7e4ATM-WHvpcPfYcNI3sGymNm5FGmPskBFZii0hXx9gZp24Gx3g5C9WfsyZClD9Q==",
+  "InfluxOrg": "autosys",
+  "InfluxBucket": "ingestion",
+  "InfluxMeasurement": "metric"
 }

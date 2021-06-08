@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	pb "hotel_reserve/services/recommendation/proto"
 	"hotel_reserve/tls"
@@ -38,7 +38,7 @@ type Server struct {
 	IpAddr       string
 	MongoSession *mgo.Session
 	Registry     *registry.Client
-	Monitor      *monitor.MonitoringHelper
+	Monitor      *common.MonitoringHelper
 }
 
 // Run starts the server
@@ -105,7 +105,7 @@ func (s *Server) Shutdown() {
 	s.Registry.Deregister(name)
 }
 
-// GiveRecommendation returns recommendations within a given requirement.
+// GetRecommendations GiveRecommendation returns recommendations within a given requirement.
 func (s *Server) GetRecommendations(ctx context.Context, req *pb.Request) (*pb.Result, error) {
 	res := new(pb.Result)
 	fmt.Printf("GetRecommendations\n")

@@ -3,6 +3,7 @@ package frontend
 import (
 	"encoding/json"
 	"fmt"
+	"hotel_reserve/common"
 	"hotel_reserve/dialer"
 	"hotel_reserve/registry"
 	profile "hotel_reserve/services/profile/proto"
@@ -36,23 +37,23 @@ func (s *Server) Run() error {
 		return fmt.Errorf("server port must be set")
 	}
 
-	if err := s.initSearchClient("srv-search"); err != nil {
+	if err := s.initSearchClient(common.ServiceSearch); err != nil {
 		return err
 	}
 
-	if err := s.initProfileClient("srv-profile"); err != nil {
+	if err := s.initProfileClient(common.ServiceProfile); err != nil {
 		return err
 	}
 
-	if err := s.initRecommendationClient("srv-recommendation"); err != nil {
+	if err := s.initRecommendationClient(common.ServiceReco); err != nil {
 		return err
 	}
 
-	if err := s.initUserClient("srv-user"); err != nil {
+	if err := s.initUserClient(common.ServiceUser); err != nil {
 		return err
 	}
 
-	if err := s.initReservation("srv-reservation"); err != nil {
+	if err := s.initReservation(common.ServiceResv); err != nil {
 		return err
 	}
 
@@ -71,9 +72,9 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) initSearchClient(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -84,9 +85,9 @@ func (s *Server) initSearchClient(name string) error {
 }
 
 func (s *Server) initProfileClient(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -97,9 +98,9 @@ func (s *Server) initProfileClient(name string) error {
 }
 
 func (s *Server) initRecommendationClient(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -110,9 +111,9 @@ func (s *Server) initRecommendationClient(name string) error {
 }
 
 func (s *Server) initUserClient(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -123,9 +124,9 @@ func (s *Server) initUserClient(name string) error {
 }
 
 func (s *Server) initReservation(name string) error {
-	conn, err := dialer.Dial(
+	conn, err := dialer.Dial2(
 		name,
-		dialer.WithTracer(s.Tracer),
+		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {

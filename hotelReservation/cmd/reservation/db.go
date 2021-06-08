@@ -109,19 +109,19 @@ func initializeDatabase(url string) *mgo.Session {
 	}
 
 	for i := 7; i <= 80; i++ {
-		hotel_id := strconv.Itoa(i)
-		count, err = c.Find(&bson.M{"hotelId": hotel_id}).Count()
+		hotelId := strconv.Itoa(i)
+		count, err = c.Find(&bson.M{"hotelId": hotelId}).Count()
 		if err != nil {
 			log.Fatal(err)
 		}
-		room_num := 200
+		roomNum := 200
 		if i % 3 == 1 {
-			room_num = 300
+			roomNum = 300
 		} else if i % 3 == 2 {
-			room_num = 250
+			roomNum = 250
 		}
 		if count == 0{
-			err = c.Insert(&Number{hotel_id, room_num})
+			err = c.Insert(&Number{hotelId, roomNum})
 			if err != nil {
 				log.Fatal(err)
 			}

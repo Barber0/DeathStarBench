@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - rate
-          image: simonalphafang/hotel_reserve_proto:0.0.8
+          image: simonalphafang/hotel_reserve_proto:0.0.8-influx2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-rate
           ports:

@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/recommendation"
 	"hotel_reserve/tracing"
@@ -17,8 +17,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-const ServiceName = "recommendation"
 
 func main() {
 	jsonFile, err := os.Open("config.json")
@@ -65,7 +63,7 @@ func main() {
 
 	fmt.Printf("recommendation ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
+	tracer, err := tracing.Init(common.ServiceReco, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +84,10 @@ func main() {
 		Port:         servPort,
 		IpAddr:       servIp,
 		MongoSession: mongoSession,
-		Monitor:      monitor.NewMonitoringHelper(ServiceName),
+		Monitor: common.NewMonitoringHelper(
+			common.ServiceReco,
+			result,
+		),
 	}
 	log.Fatal(srv.Run())
 }

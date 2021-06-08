@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/geo"
 	"hotel_reserve/tracing"
@@ -17,8 +17,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-const ServiceName = "geo"
 
 func main() {
 
@@ -64,7 +62,7 @@ func main() {
 
 	fmt.Printf("geo ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
+	tracer, err := tracing.Init(common.ServiceGeo, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +83,10 @@ func main() {
 		Tracer:       tracer,
 		Registry:     registryCli,
 		MongoSession: mongoSession,
-		Monitor:      monitor.NewMonitoringHelper(ServiceName),
+		Monitor: common.NewMonitoringHelper(
+			common.ServiceGeo,
+			result,
+		),
 	}
 	log.Fatal(srv.Run())
 }

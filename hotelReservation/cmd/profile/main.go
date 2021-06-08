@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/profile"
 	"hotel_reserve/tracing"
@@ -20,8 +20,6 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"time"
 )
-
-const ServiceName = "profile"
 
 func main() {
 	jsonFile, err := os.Open("config.json")
@@ -76,7 +74,7 @@ func main() {
 
 	fmt.Printf("profile ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
+	tracer, err := tracing.Init(common.ServiceProfile, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +97,10 @@ func main() {
 		IpAddr:       servIp,
 		MongoSession: mongoSession,
 		MemcClient:   memcClient,
-		Monitor:      monitor.NewMonitoringHelper(ServiceName),
+		Monitor: common.NewMonitoringHelper(
+			common.ServiceProfile,
+			result,
+		),
 	}
 	log.Fatal(srv.Run())
 }

@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"hotel_reserve/monitor"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/user"
 	"hotel_reserve/tracing"
@@ -17,8 +17,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-const ServiceName = "user"
 
 func main() {
 	// initializeDatabase()
@@ -47,7 +45,6 @@ func main() {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
 					servIp = ipnet.IP.String()
-
 				}
 			}
 		}
@@ -66,7 +63,7 @@ func main() {
 
 	fmt.Printf("user ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(ServiceName, *jaegeraddr)
+	tracer, err := tracing.Init(common.ServiceUser, *jaegeraddr)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +84,10 @@ func main() {
 		Port:         servPort,
 		IpAddr:       servIp,
 		MongoSession: mongoSession,
-		Monitor:      monitor.NewMonitoringHelper(ServiceName),
+		Monitor: common.NewMonitoringHelper(
+			common.ServiceUser,
+			result,
+		),
 	}
 	log.Fatal(srv.Run())
 }
