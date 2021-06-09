@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: memcached-reserve
-  strategy: {}
+  strategy: { }
   template:
     metadata:
       annotations:
@@ -24,6 +24,7 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       creationTimestamp: null
       labels:
+        role: db
         app: memcached-reserve
         io.kompose.service: memcached-reserve
     spec:
@@ -43,4 +44,4 @@ spec:
             limits:
               cpu: 350m
       restartPolicy: Always
-status: {}
+status: { }

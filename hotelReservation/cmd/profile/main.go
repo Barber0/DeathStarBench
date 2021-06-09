@@ -67,6 +67,14 @@ func main() {
 	mongoSession := initializeDatabase(profileMongoAddr)
 	defer mongoSession.Close()
 
+	if poolLimitStr := os.Getenv("CONN_POOL_LIMIT"); poolLimitStr != "" {
+		poolLimit, err := strconv.Atoi(poolLimitStr)
+		if err != nil {
+			panic(err)
+		}
+		mongoSession.SetPoolLimit(poolLimit)
+	}
+
 	fmt.Printf("profile memc addr port = %s\n", profileMemcAddr)
 	memcClient := memcache.New(profileMemcAddr)
 	memcClient.Timeout = time.Second * 2
