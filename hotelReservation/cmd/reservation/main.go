@@ -14,7 +14,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 
 	"strconv"
 
@@ -101,5 +104,18 @@ func main() {
 			result,
 		),
 	}
-	log.Fatal(srv.Run())
+
+	wg := new(sync.WaitGroup)
+	sigC := make(chan os.Signal, 1)
+	signal.Notify(sigC, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+	wg.Add(1)
+	go func() {
+		s := <-sigC
+		log.Printf("signal[%d] received, shuting down gracefully\n", s)
+		srv.Shutdown()
+		wg.Done()
+	}()
+
+	log.Println(srv.Run())
+	wg.Wait()
 }

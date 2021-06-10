@@ -1,3 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: memcached-reserve
+data:
+  MEMCACHED_CACHE_SIZE: "128"
+  MEMCACHED_THREADS: "2"
+  MEMCACHED_CONNECTIONS: "4"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,9 +40,20 @@ spec:
       containers:
         - env:
             - name: MEMCACHED_CACHE_SIZE
-              value: "128"
+              valueFrom:
+                configMapKeyRef:
+                  name: memcached-reserve
+                  key: MEMCACHED_CACHE_SIZE
             - name: MEMCACHED_THREADS
-              value: "2"
+              valueFrom:
+                configMapKeyRef:
+                  name: memcached-reserve
+                  key: MEMCACHED_THREADS
+            - name: MEMCACHED_CONNECTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: memcached-reserve
+                  key: MEMCACHED_CONNECTIONS
           image: memcached
           name: hotel-reserv-reservation-mmc
           ports:

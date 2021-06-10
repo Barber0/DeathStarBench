@@ -109,6 +109,7 @@ func (s *Server) Run() error {
 
 // Shutdown cleans up any processes
 func (s *Server) Shutdown() {
+	s.Monitor.Close()
 	s.Registry.Deregister(name)
 }
 
