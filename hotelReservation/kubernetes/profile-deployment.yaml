@@ -30,7 +30,7 @@ spec:
       containers:
         - command:
             - profile
-          image: simonalphafang/hotel_reserve_proto:0.0.9-fix2
+          image: simonalphafang/hotel_reserve_proto:0.0.9-fix6
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-profile
           ports:

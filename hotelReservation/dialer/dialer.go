@@ -65,7 +65,7 @@ func Dial(name string, opts ...DialOption) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
-func Dial2(name string, tracer opentracing.Tracer, opts ...DialOption) (*grpc.ClientConn, error) {
+func Dial2(name string, monHelper *common.MonitoringHelper, tracer opentracing.Tracer, opts ...DialOption) (*grpc.ClientConn, error) {
 	dialopts := []grpc.DialOption{
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Timeout:             120 * time.Second,
@@ -73,7 +73,7 @@ func Dial2(name string, tracer opentracing.Tracer, opts ...DialOption) (*grpc.Cl
 		}),
 		grpc.WithChainUnaryInterceptor(
 			otgrpc.OpenTracingClientInterceptor(tracer),
-			common.SenderMetricInterceptor(name),
+			monHelper.SenderMetricInterceptor(),
 		),
 	}
 	if tlsopt := tls.GetDialOpt(); tlsopt != nil {

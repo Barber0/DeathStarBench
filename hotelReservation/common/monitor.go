@@ -19,6 +19,7 @@ const (
 
 	LabelServiceName = "service"
 	LabelPodName     = "pod"
+	LabelMethod      = "method"
 	LabelSrcService  = "src_service"
 	LabelSrcPod      = "src_pod"
 
@@ -67,6 +68,14 @@ func NewMonitoringHelper(serviceName string, config map[string]string) *Monitori
 	return helper
 }
 
+func getCtxData(m map[string]string, md metadata.MD, keys ...string) {
+	for _, key := range keys {
+		if dataArr := md.Get(key); len(dataArr) > 0 {
+			m[key] = dataArr[0]
+		}
+	}
+}
+
 func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context2.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		startTime := time.Now()
@@ -78,13 +87,15 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		pTag := map[string]string{
 			LabelServiceName: mh.serviceName,
 			LabelPodName:     mh.podName,
+			LabelMethod:      info.FullMethod,
 		}
 
-		//meta, ok := metadata.FromIncomingContext(ctx)
-		//if ok {
-		//	pTag[LabelSrcService] = meta.Get(LabelSrcService)[0]
-		//	pTag[LabelSrcPod] = meta.Get(LabelSrcPod)[0]
-		//}
+		meta, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			getCtxData(pTag, meta,
+				LabelSrcService,
+				LabelSrcPod)
+		}
 
 		metricPoint := influxdb2.NewPoint(
 			mh.influxMeasurement,
@@ -105,11 +116,11 @@ func (mh *MonitoringHelper) Close() {
 	mh.influxCli.Close()
 }
 
-func SenderMetricInterceptor(service string) grpc.UnaryClientInterceptor {
+func (mh *MonitoringHelper) SenderMetricInterceptor() grpc.UnaryClientInterceptor {
 	return func(ctx context2.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		outCtx := metadata.NewOutgoingContext(ctx, metadata.MD{
-			LabelSrcService: {service},
-			LabelSrcPod:     {podName},
+			LabelSrcService: {mh.serviceName},
+			LabelSrcPod:     {mh.podName},
 		})
 
 		return invoker(outCtx, method, req, reply, cc, opts...)

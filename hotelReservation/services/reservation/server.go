@@ -28,7 +28,7 @@ import (
 	"strconv"
 )
 
-const name = "srv-reservation"
+const name = common.ServiceResv
 
 // Server implements the user service
 type Server struct {

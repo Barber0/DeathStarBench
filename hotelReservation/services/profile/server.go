@@ -28,7 +28,7 @@ import (
 	// "strings"
 )
 
-const name = "srv-profile"
+const name = common.ServiceProfile
 
 // Server implements the profile service
 type Server struct {

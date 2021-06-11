@@ -30,5 +30,7 @@
   "InfluxToken": "kLRKFbu3X-m1qnszgmyV_p7e4ATM-WHvpcPfYcNI3sGymNm5FGmPskBFZii0hXx9gZp24Gx3g5C9WfsyZClD9Q==",
   "InfluxOrg": "autosys",
   "InfluxBucket": "ingestion",
-  "InfluxMeasurement": "metric"
+  "InfluxMeasurement": "metric",
+  "InfluxBatchSize": "100",
+  "InfluxFlushInterval": "60"
 }

@@ -29,7 +29,7 @@ import (
 	"strings"
 )
 
-const name = "srv-rate"
+const name = common.ServiceRate
 
 // Server implements the rate service
 type Server struct {

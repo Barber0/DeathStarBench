@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	name             = "srv-geo"
+	name             = common.ServiceGeo
 	maxSearchRadius  = 10
 	maxSearchResults = 5
 )

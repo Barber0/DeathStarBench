@@ -27,7 +27,7 @@ import (
 	pb "hotel_reserve/services/search/proto"
 )
 
-const name = "srv-search"
+const name = common.ServiceSearch
 
 // Server implments the search service
 type Server struct {
@@ -99,6 +99,7 @@ func (s *Server) Shutdown() {
 func (s *Server) initGeoClient(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
@@ -112,6 +113,7 @@ func (s *Server) initGeoClient(name string) error {
 func (s *Server) initRateClient(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)

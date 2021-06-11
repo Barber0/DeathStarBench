@@ -28,7 +28,7 @@ import (
 	// "strings"
 )
 
-const name = "srv-recommendation"
+const name = common.ServiceReco
 
 // Server implements the recommendation service
 type Server struct {

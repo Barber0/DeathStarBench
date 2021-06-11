@@ -29,6 +29,7 @@ type Server struct {
 	Port                 int
 	Tracer               opentracing.Tracer
 	Registry             *registry.Client
+	Monitor              *common.MonitoringHelper
 }
 
 // Run the server
@@ -74,6 +75,7 @@ func (s *Server) Run() error {
 func (s *Server) initSearchClient(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
@@ -87,6 +89,7 @@ func (s *Server) initSearchClient(name string) error {
 func (s *Server) initProfileClient(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
@@ -100,6 +103,7 @@ func (s *Server) initProfileClient(name string) error {
 func (s *Server) initRecommendationClient(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
@@ -113,6 +117,7 @@ func (s *Server) initRecommendationClient(name string) error {
 func (s *Server) initUserClient(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
@@ -126,6 +131,7 @@ func (s *Server) initUserClient(name string) error {
 func (s *Server) initReservation(name string) error {
 	conn, err := dialer.Dial2(
 		name,
+		s.Monitor,
 		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)

@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const name = "srv-user"
+const name = common.ServiceUser
 
 // Server implements the user service
 type Server struct {

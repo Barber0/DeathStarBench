@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/frontend"
 	"hotel_reserve/tracing"
@@ -67,6 +68,7 @@ func main() {
 		Tracer:   tracer,
 		IpAddr:   servIp,
 		Port:     servPort,
+		Monitor:  common.NewMonitoringHelper(common.ServiceFrontend, result),
 	}
 	log.Fatal(srv.Run())
 }
