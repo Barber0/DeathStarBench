@@ -1,12 +1,12 @@
 package common
 
 const (
-	ServiceFrontend = "frontend"
-	ServiceGeo      = "geo"
-	ServiceProfile  = "profile"
-	ServiceRate     = "rate"
-	ServiceReco     = "recommendation"
-	ServiceResv     = "reservation"
-	ServiceSearch   = "search"
-	ServiceUser     = "user"
+	ServiceFrontend = "srv-frontend"
+	ServiceGeo      = "srv-geo"
+	ServiceProfile  = "srv-profile"
+	ServiceRate     = "srv-rate"
+	ServiceReco     = "srv-recommendation"
+	ServiceResv     = "srv-reservation"
+	ServiceSearch   = "srv-search"
+	ServiceUser     = "srv-user"
 )

@@ -3,10 +3,12 @@ package common
 import (
 	context2 "context"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -28,6 +30,7 @@ type MonitoringHelper struct {
 	podName           string
 	metricMap         map[string]prometheus.Gauge
 	influxCli         influxdb2.Client
+	writeAPI          api.WriteAPI
 	influxOrg         string
 	influxBucket      string
 	influxMeasurement string
@@ -44,13 +47,20 @@ func getPodName() string {
 var podName = getPodName()
 
 func NewMonitoringHelper(serviceName string, config map[string]string) *MonitoringHelper {
+
+	influxBatchSize, _ := strconv.Atoi(config["InfluxBatchSize"])
+	influxFlushInterval, _ := strconv.Atoi(config["InfluxFlushInterval"])
+	opt := influxdb2.DefaultOptions().
+		SetBatchSize(uint(influxBatchSize)).
+		SetFlushInterval(uint(influxFlushInterval))
+	cli := influxdb2.NewClientWithOptions("http://influxdb.autosys:8086", config["InfluxToken"], opt)
+
 	helper := &MonitoringHelper{
 		serviceName:       serviceName,
 		podName:           podName,
 		metricMap:         make(map[string]prometheus.Gauge),
-		influxCli:         influxdb2.NewClient("http://influxdb.autosys:8086", config["InfluxToken"]),
-		influxOrg:         config["InfluxOrg"],
-		influxBucket:      config["InfluxBucket"],
+		influxCli:         cli,
+		writeAPI:          cli.WriteAPI(config["InfluxOrg"], config["InfluxBucket"]),
 		influxMeasurement: config["InfluxMeasurement"],
 	}
 
@@ -70,13 +80,12 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 			LabelPodName:     mh.podName,
 		}
 
-		meta, ok := metadata.FromIncomingContext(ctx)
-		if ok {
-			pTag[LabelSrcService] = meta.Get(LabelSrcService)[0]
-			pTag[LabelSrcPod] = meta.Get(LabelSrcPod)[0]
-		}
+		//meta, ok := metadata.FromIncomingContext(ctx)
+		//if ok {
+		//	pTag[LabelSrcService] = meta.Get(LabelSrcService)[0]
+		//	pTag[LabelSrcPod] = meta.Get(LabelSrcPod)[0]
+		//}
 
-		writeAPI := mh.influxCli.WriteAPI(mh.influxOrg, mh.influxBucket)
 		metricPoint := influxdb2.NewPoint(
 			mh.influxMeasurement,
 			pTag,
@@ -86,11 +95,16 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 			endTime,
 		)
 
-		writeAPI.WritePoint(metricPoint)
-
+		mh.writeAPI.WritePoint(metricPoint)
 		return
 	}
 }
+
+func (mh *MonitoringHelper) Close() {
+	mh.writeAPI.Flush()
+	mh.influxCli.Close()
+}
+
 func SenderMetricInterceptor(service string) grpc.UnaryClientInterceptor {
 	return func(ctx context2.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		outCtx := metadata.NewOutgoingContext(ctx, metadata.MD{
