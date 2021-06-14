@@ -98,6 +98,9 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 	// 	panic(err)
 	// }
 	// defer session.Close()
+
+	dbStat1, _ := s.Monitor.DBStatTool(common.DbStageRun)
+
 	session := s.MongoSession.Copy()
 	defer session.Close()
 
@@ -115,6 +118,8 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 	indate := inDate.String()[0:10]
 
+	cacheStat1, cacheStat2 := s.Monitor.CacheStatTool(common.DbStageRun)
+
 	memcDateNumMap := make(map[string]int)
 
 	for inDate.Before(outDate) {
@@ -125,7 +130,9 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 		// first check memc
 		memcKey := hotelId + "_" + inDate.String()[0:10] + "_" + outdate
-		item, err := s.MemcClient.Get(memcKey)
+		item, err := cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
+			return s.MemcClient.Get(memcKey)
+		})
 		if err == nil {
 			// memcached hit
 			count, _ = strconv.Atoi(string(item.Value))
@@ -136,7 +143,9 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			// memcached miss
 			// fmt.Printf("memcached miss\n")
 			reserve := make([]reservation, 0)
-			err := c.Find(&bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}).All(&reserve)
+			err := dbStat1(common.DbOpScan, func() error {
+				return c.Find(&bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}).All(&reserve)
+			})
 			if err != nil {
 				panic(err)
 			}
@@ -155,7 +164,9 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 		// check capacity
 		// check memc capacity
 		memcCapKey := hotelId + "_cap"
-		item, err = s.MemcClient.Get(memcCapKey)
+		item, err = cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
+			return s.MemcClient.Get(memcCapKey)
+		})
 		hotelCap := 0
 		if err == nil {
 			// memcached hit
@@ -171,7 +182,9 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			hotelCap = int(num.Number)
 
 			// write to memcache
-			s.MemcClient.Set(&memcache.Item{Key: memcCapKey, Value: []byte(strconv.Itoa(hotelCap))})
+			cacheStat1(common.DbOpInsert, func() error {
+				return s.MemcClient.Set(&memcache.Item{Key: memcCapKey, Value: []byte(strconv.Itoa(hotelCap))})
+			})
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)
 			panic(err)
@@ -185,7 +198,9 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 	// only update reservation number cache after check succeeds
 	for key, val := range memcDateNumMap {
-		s.MemcClient.Set(&memcache.Item{Key: key, Value: []byte(strconv.Itoa(val))})
+		cacheStat1(common.DbOpUpdate, func() error {
+			return s.MemcClient.Set(&memcache.Item{Key: key, Value: []byte(strconv.Itoa(val))})
+		})
 	}
 
 	inDate, _ = time.Parse(
@@ -197,12 +212,14 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 	for inDate.Before(outDate) {
 		inDate = inDate.AddDate(0, 0, 1)
 		outdate := inDate.String()[0:10]
-		err := c.Insert(&reservation{
-			HotelId:      hotelId,
-			CustomerName: req.CustomerName,
-			InDate:       indate,
-			OutDate:      outdate,
-			Number:       int(req.RoomNumber)})
+		err := dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&reservation{
+				HotelId:      hotelId,
+				CustomerName: req.CustomerName,
+				InDate:       indate,
+				OutDate:      outdate,
+				Number:       int(req.RoomNumber)})
+		})
 		if err != nil {
 			panic(err)
 		}
@@ -230,6 +247,8 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 	c := session.DB("reservation-db").C("reservation")
 	c1 := session.DB("reservation-db").C("number")
 
+	cacheStat1, cacheStat2 := s.Monitor.CacheStatTool(common.DbStageRun)
+
 	for _, hotelId := range req.HotelId {
 		// fmt.Printf("reservation check hotel %s\n", hotelId)
 		inDate, _ := time.Parse(
@@ -251,7 +270,9 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 
 			// first check memc
 			memc_key := hotelId + "_" + inDate.String()[0:10] + "_" + outdate
-			item, err := s.MemcClient.Get(memc_key)
+			item, err := cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
+				return s.MemcClient.Get(memc_key)
+			})
 
 			if err == nil {
 				// memcached hit
@@ -259,8 +280,12 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				// fmt.Printf("memcached hit %s = %d\n", memc_key, count)
 			} else if err == memcache.ErrCacheMiss {
 				// memcached miss
+				dbStat1, _ := s.Monitor.DBStatTool(common.DbStageRun)
+
 				reserve := make([]reservation, 0)
-				err := c.Find(&bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}).All(&reserve)
+				err := dbStat1(common.DbOpScan, func() error {
+					return c.Find(&bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}).All(&reserve)
+				})
 				if err != nil {
 					panic(err)
 				}
@@ -270,7 +295,9 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				}
 
 				// update memcached
-				s.MemcClient.Set(&memcache.Item{Key: memc_key, Value: []byte(strconv.Itoa(count))})
+				cacheStat1(common.DbOpInsert, func() error {
+					return s.MemcClient.Set(&memcache.Item{Key: memc_key, Value: []byte(strconv.Itoa(count))})
+				})
 			} else {
 				fmt.Printf("Memmcached error = %s\n", err)
 				panic(err)
@@ -279,7 +306,9 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 			// check capacity
 			// check memc capacity
 			memc_cap_key := hotelId + "_cap"
-			item, err = s.MemcClient.Get(memc_cap_key)
+			item, err = cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
+				return s.MemcClient.Get(memc_cap_key)
+			})
 			hotel_cap := 0
 
 			if err == nil {
@@ -294,7 +323,9 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				}
 				hotel_cap = int(num.Number)
 				// update memcached
-				s.MemcClient.Set(&memcache.Item{Key: memc_cap_key, Value: []byte(strconv.Itoa(hotel_cap))})
+				cacheStat1(common.DbOpInsert, func() error {
+					return s.MemcClient.Set(&memcache.Item{Key: memc_cap_key, Value: []byte(strconv.Itoa(hotel_cap))})
+				})
 			} else {
 				fmt.Printf("Memmcached error = %s\n", err)
 				panic(err)

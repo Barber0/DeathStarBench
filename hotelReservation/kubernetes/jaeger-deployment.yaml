@@ -22,11 +22,23 @@ spec:
         kompose.version: 1.22.0 (955b78124)
         sidecar.istio.io/statsInclusionPrefixes: cluster.outbound,cluster_manager,listener_manager,http_mixer_filter,tcp_mixer_filter,server,cluster.xds-grp,listener,connection_manager
         sidecar.istio.io/statsInclusionRegexps: http.*
-      creationTimestamp: null
       labels:
         app: jaeger
         io.kompose.service: jaeger
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: disktype
+                    operator: In
+                    values:
+                      - premium
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.3"
       containers:
         - image: jaegertracing/all-in-one:latest
           name: hotel-reserv-jaeger
@@ -42,11 +54,6 @@ spec:
               protocol: UDP
             - containerPort: 6832
               protocol: UDP
-          resources:
-            requests:
-              cpu: 50m
-            limits:
-              cpu: 350m
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"

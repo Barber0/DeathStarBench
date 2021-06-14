@@ -50,7 +50,7 @@ func (s *Server) Run() error {
 	}
 
 	if s.index == nil {
-		s.index = newGeoIndex(s.MongoSession)
+		s.index = newGeoIndex(s.Monitor, s.MongoSession)
 	}
 
 	opts := []grpc.ServerOption{
@@ -150,7 +150,7 @@ func (s *Server) getNearbyPoints(ctx context.Context, lat, lon float64) []geoind
 }
 
 // newGeoIndex returns a geo index with points loaded
-func newGeoIndex(session *mgo.Session) *geoindex.ClusteringIndex {
+func newGeoIndex(monHelper *common.MonitoringHelper, session *mgo.Session) *geoindex.ClusteringIndex {
 	// session, err := mgo.Dial("mongodb-geo")
 	// if err != nil {
 	// 	panic(err)
@@ -159,12 +159,16 @@ func newGeoIndex(session *mgo.Session) *geoindex.ClusteringIndex {
 
 	// fmt.Printf("new geo newGeoIndex\n")
 
+	dbStat1, _ := monHelper.DBStatTool(common.DbStageRun)
+
 	s := session.Copy()
 	defer s.Close()
 	c := s.DB("geo-db").C("geo")
 
 	var points []*point
-	err := c.Find(bson.M{}).All(&points)
+	err := dbStat1(common.DbOpScan, func() error {
+		return c.Find(bson.M{}).All(&points)
+	})
 	if err != nil {
 		log.Println("Failed get geo data: ", err)
 	}

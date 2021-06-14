@@ -113,9 +113,13 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 
 	ratePlans := make(RatePlans, 0)
 
+	cacheStat1, cacheStat2 := s.Monitor.CacheStatTool(common.DbStageRun)
+
 	for _, hotelID := range req.HotelIds {
 		// first check memcached
-		item, err := s.MemcClient.Get(hotelID)
+		item, err := cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
+			return s.MemcClient.Get(hotelID)
+		})
 		if err == nil {
 			// memcached hit
 			rateStrs := strings.Split(string(item.Value), "\n")
@@ -133,6 +137,7 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 		} else if err == memcache.ErrCacheMiss {
 
 			// fmt.Printf("memc miss, hotelId = %s\n", hotelID)
+			dbStat1, _ := s.Monitor.DBStatTool(common.DbStageRun)
 
 			// memcached miss, set up mongo connection
 			session := s.MongoSession.Copy()
@@ -142,7 +147,9 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 			memc_str := ""
 
 			tmpRatePlans := make(RatePlans, 0)
-			err := c.Find(&bson.M{"hotelId": hotelID}).All(&tmpRatePlans)
+			err := dbStat1(common.DbOpScan, func() error {
+				return c.Find(&bson.M{"hotelId": hotelID}).All(&tmpRatePlans)
+			})
 			if err != nil {
 				panic(err)
 			} else {
@@ -157,7 +164,9 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 			}
 
 			// write to memcached
-			s.MemcClient.Set(&memcache.Item{Key: hotelID, Value: []byte(memc_str)})
+			cacheStat1(common.DbOpInsert, func() error {
+				return s.MemcClient.Set(&memcache.Item{Key: hotelID, Value: []byte(memc_str)})
+			})
 
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)

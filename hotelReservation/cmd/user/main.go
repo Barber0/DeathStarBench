@@ -58,7 +58,12 @@ func main() {
 	}
 	flag.Parse()
 
-	mongoSession := initializeDatabase(userMongoAddr)
+	monHelper := common.NewMonitoringHelper(
+		common.ServiceUser,
+		result,
+	)
+
+	mongoSession := initializeDatabase(monHelper, userMongoAddr)
 	defer mongoSession.Close()
 
 	fmt.Printf("user ip = %s, port = %d\n", servIp, servPort)
@@ -84,10 +89,7 @@ func main() {
 		Port:         servPort,
 		IpAddr:       servIp,
 		MongoSession: mongoSession,
-		Monitor: common.NewMonitoringHelper(
-			common.ServiceUser,
-			result,
-		),
+		Monitor:      monHelper,
 	}
 	log.Fatal(srv.Run())
 }

@@ -27,20 +27,31 @@ spec:
         app: geo
         io.kompose.service: geo
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.3"
+                  - key: disktype
+                    operator: NotIn
+                    values:
+                      - premium
       containers:
         - command:
             - geo
-          image: simonalphafang/hotel_reserve_proto:0.0.9-fix6
+          image: simonalphafang/hotel_reserve_proto:0.0.10-test
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-geo
           ports:
             - containerPort: 8083
             - containerPort: 2112
           resources:
-            requests:
-              cpu: 10m
             limits:
-              cpu: 350m
+              cpu: 400m
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
@@ -49,4 +60,3 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
       restartPolicy: Always
-status: { }

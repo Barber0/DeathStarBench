@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: consul
-  strategy: {}
+  strategy: { }
   template:
     metadata:
       annotations:
@@ -27,6 +27,19 @@ spec:
         app: consul
         io.kompose.service: consul
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: disktype
+                    operator: In
+                    values:
+                      - premium
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.3"
       containers:
         - image: consul:latest
           name: consul
@@ -36,10 +49,4 @@ spec:
             - containerPort: 8500
             - containerPort: 53
               protocol: UDP
-          resources:
-            requests:
-              cpu: 10m
-            limits:
-              cpu: 350m
       restartPolicy: Always
-status: {}

@@ -64,7 +64,12 @@ func main() {
 	}
 	flag.Parse()
 
-	mongoSession := initializeDatabase(rateMongoAddr)
+	monHelper := common.NewMonitoringHelper(
+		common.ServiceRate,
+		result,
+	)
+
+	mongoSession := initializeDatabase(monHelper, rateMongoAddr)
 
 	fmt.Printf("rate memc addr port = %s\n", rateMemcAddr)
 	memcClient := memcache.New(rateMemcAddr)
@@ -98,10 +103,7 @@ func main() {
 		IpAddr:       servIp,
 		MongoSession: mongoSession,
 		MemcClient:   memcClient,
-		Monitor: common.NewMonitoringHelper(
-			common.ServiceRate,
-			result,
-		),
+		Monitor:      monHelper,
 	}
 	log.Fatal(srv.Run())
 }

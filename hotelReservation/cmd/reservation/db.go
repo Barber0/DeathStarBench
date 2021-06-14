@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"hotel_reserve/common"
 	"log"
 	"strconv"
 )
@@ -17,11 +18,11 @@ type Reservation struct {
 }
 
 type Number struct {
-	HotelId      string `bson:"hotelId"`
-	Number       int    `bson:"numberOfRoom"`
+	HotelId string `bson:"hotelId"`
+	Number  int    `bson:"numberOfRoom"`
 }
 
-func initializeDatabase(url string) *mgo.Session {
+func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Session {
 	fmt.Printf("reservation db ip addr = %s\n", url)
 	session, err := mgo.Dial(url)
 	if err != nil {
@@ -29,80 +30,117 @@ func initializeDatabase(url string) *mgo.Session {
 	}
 	// defer session.Close()
 
+	dbStat1, dbStat2 := monHelper.DBStatTool(common.DbStageLoad)
+
 	c := session.DB("reservation-db").C("reservation")
-	count, err := c.Find(&bson.M{"hotelId": "4"}).Count()
+	count, err := dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "4"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Reservation{"4", "Alice", "2015-04-09", "2015-04-10", 1})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Reservation{"4", "Alice", "2015-04-09", "2015-04-10", 1})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	c = session.DB("reservation-db").C("number")
-	count, err = c.Find(&bson.M{"hotelId": "1"}).Count()
+	count, err = dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "1"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Number{"1", 200})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Number{"1", 200})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = c.Find(&bson.M{"hotelId": "2"}).Count()
+	count, err = dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "2"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Number{"2", 200})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Number{"2", 200})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = c.Find(&bson.M{"hotelId": "3"}).Count()
+	count, err = dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "3"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Number{"3", 200})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Number{"3", 200})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = c.Find(&bson.M{"hotelId": "4"}).Count()
+	count, err = dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "4"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Number{"4", 200})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Number{"4", 200})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = c.Find(&bson.M{"hotelId": "5"}).Count()
+	count, err = dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "5"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Number{"5", 200})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Number{"5", 200})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = c.Find(&bson.M{"hotelId": "6"}).Count()
+	count, err = dbStat2(common.DbOpScan, func() (int, error) {
+		return c.Find(&bson.M{"hotelId": "6"}).Count()
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if count == 0{
-		err = c.Insert(&Number{"6", 200})
+	if count == 0 {
+		err = dbStat1(common.DbOpInsert, func() error {
+			return c.Insert(&Number{"6", 200})
+		})
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -110,18 +148,23 @@ func initializeDatabase(url string) *mgo.Session {
 
 	for i := 7; i <= 80; i++ {
 		hotelId := strconv.Itoa(i)
-		count, err = c.Find(&bson.M{"hotelId": hotelId}).Count()
+		count, err = dbStat2(common.DbOpScan, func() (int, error) {
+			return c.Find(&bson.M{"hotelId": hotelId}).Count()
+		})
 		if err != nil {
 			log.Fatal(err)
 		}
 		roomNum := 200
-		if i % 3 == 1 {
+		if i%3 == 1 {
 			roomNum = 300
-		} else if i % 3 == 2 {
+		} else if i%3 == 2 {
 			roomNum = 250
 		}
-		if count == 0{
-			err = c.Insert(&Number{hotelId, roomNum})
+		if count == 0 {
+			err = dbStat1(common.DbOpInsert, func() error {
+				return c.Insert(&Number{hotelId, roomNum})
+			})
+
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -132,7 +175,6 @@ func initializeDatabase(url string) *mgo.Session {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	return session
 }

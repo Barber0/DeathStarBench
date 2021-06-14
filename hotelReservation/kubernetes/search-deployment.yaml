@@ -27,20 +27,31 @@ spec:
         app: search
         io.kompose.service: search
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.3"
+                  - key: disktype
+                    operator: NotIn
+                    values:
+                      - premium
       containers:
         - command:
             - search
-          image: simonalphafang/hotel_reserve_proto:0.0.9-fix6
+          image: simonalphafang/hotel_reserve_proto:0.0.10-test
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-search
           ports:
             - containerPort: 8082
             - containerPort: 2112
           resources:
-            requests:
-              cpu: 10m
             limits:
-              cpu: 350m
+              cpu: 400m
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"

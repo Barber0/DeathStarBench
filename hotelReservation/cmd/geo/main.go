@@ -57,7 +57,12 @@ func main() {
 	}
 	flag.Parse()
 
-	mongoSession := initializeDatabase(geoMongoAddr)
+	monHelper := common.NewMonitoringHelper(
+		common.ServiceGeo,
+		result,
+	)
+
+	mongoSession := initializeDatabase(monHelper, geoMongoAddr)
 	defer mongoSession.Close()
 
 	fmt.Printf("geo ip = %s, port = %d\n", servIp, servPort)
@@ -83,10 +88,7 @@ func main() {
 		Tracer:       tracer,
 		Registry:     registryCli,
 		MongoSession: mongoSession,
-		Monitor: common.NewMonitoringHelper(
-			common.ServiceGeo,
-			result,
-		),
+		Monitor:      monHelper,
 	}
 	log.Fatal(srv.Run())
 }

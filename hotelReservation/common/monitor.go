@@ -2,6 +2,7 @@ package common
 
 import (
 	context2 "context"
+	"github.com/bradfitz/gomemcache/memcache"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,20 +23,43 @@ const (
 	LabelMethod      = "method"
 	LabelSrcService  = "src_service"
 	LabelSrcPod      = "src_pod"
+	LabelFailed      = "failed"
+	LabelDbOpType    = "op"
+	LabelDbStage     = "stage"
+
+	DbStageLoad = "load"
+	DbStageRun  = "run"
+
+	DbOpRead   = "read"
+	DbOpScan   = "scan"
+	DbOpInsert = "insert"
+	DbOpUpdate = "update"
+
+	DummyTagVal = "true"
 
 	PerfLatency = "latency"
 )
 
 type MonitoringHelper struct {
-	serviceName       string
-	podName           string
-	metricMap         map[string]prometheus.Gauge
-	influxCli         influxdb2.Client
-	writeAPI          api.WriteAPI
-	influxOrg         string
-	influxBucket      string
-	influxMeasurement string
+	serviceName  string
+	podName      string
+	metricMap    map[string]prometheus.Gauge
+	influxCli    influxdb2.Client
+	writeAPI     api.WriteAPI
+	influxOrg    string
+	influxBucket string
+	serviceStat  string
+	mgoStat      string
+	memcStat     string
 }
+
+type (
+	dbStatFunc1 func(string, func() error) error
+	dbStatFunc2 func(string, func() (int, error)) (int, error)
+
+	cacheStatFunc1 func(string, func() error) error
+	cacheStatFunc2 func(string, func() (*memcache.Item, error)) (*memcache.Item, error)
+)
 
 func getPodName() string {
 	podName := os.Getenv(EnvPodName)
@@ -49,20 +73,22 @@ var podName = getPodName()
 
 func NewMonitoringHelper(serviceName string, config map[string]string) *MonitoringHelper {
 
-	influxBatchSize, _ := strconv.Atoi(config["InfluxBatchSize"])
-	influxFlushInterval, _ := strconv.Atoi(config["InfluxFlushInterval"])
+	influxBatchSize, _ := strconv.Atoi(config[CfgKeyInfluxBatchSize])
+	influxFlushInterval, _ := strconv.Atoi(config[CfgKeyInfluxFlushInterval])
 	opt := influxdb2.DefaultOptions().
 		SetBatchSize(uint(influxBatchSize)).
 		SetFlushInterval(uint(influxFlushInterval))
-	cli := influxdb2.NewClientWithOptions("http://influxdb.autosys:8086", config["InfluxToken"], opt)
+	cli := influxdb2.NewClientWithOptions("http://influxdb.autosys:8086", config[CfgKeyInfluxToken], opt)
 
 	helper := &MonitoringHelper{
-		serviceName:       serviceName,
-		podName:           podName,
-		metricMap:         make(map[string]prometheus.Gauge),
-		influxCli:         cli,
-		writeAPI:          cli.WriteAPI(config["InfluxOrg"], config["InfluxBucket"]),
-		influxMeasurement: config["InfluxMeasurement"],
+		serviceName: serviceName,
+		podName:     podName,
+		metricMap:   make(map[string]prometheus.Gauge),
+		influxCli:   cli,
+		writeAPI:    cli.WriteAPI(config[CfgKeyInfluxOrg], config[CfgKeyInfluxBucket]),
+		serviceStat: config[CfgKeyServiceStat],
+		mgoStat:     config[CfgKeyMgoStat],
+		memcStat:    config[CfgKeyMemcStat],
 	}
 
 	return helper
@@ -82,7 +108,7 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		resp, err = handler(ctx, req)
 		endTime := time.Now()
 
-		handleDurData := endTime.Sub(startTime).Milliseconds()
+		handleDurData := endTime.Sub(startTime).Microseconds()
 
 		pTag := map[string]string{
 			LabelServiceName: mh.serviceName,
@@ -98,12 +124,12 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		}
 
 		metricPoint := influxdb2.NewPoint(
-			mh.influxMeasurement,
+			mh.serviceStat,
 			pTag,
 			map[string]interface{}{
 				PerfLatency: handleDurData,
 			},
-			endTime,
+			startTime,
 		)
 
 		mh.writeAPI.WritePoint(metricPoint)
@@ -125,4 +151,62 @@ func (mh *MonitoringHelper) SenderMetricInterceptor() grpc.UnaryClientIntercepto
 
 		return invoker(outCtx, method, req, reply, cc, opts...)
 	}
+}
+
+func (mh *MonitoringHelper) submitStoreOpStat(startTime, endTime time.Time, table, opType, stage string, err error) {
+	pTag := map[string]string{
+		LabelSrcService: mh.serviceName,
+		LabelSrcPod:     mh.podName,
+		LabelDbOpType:   opType,
+		LabelDbStage:    stage,
+	}
+
+	pData := map[string]interface{}{
+		PerfLatency: endTime.Sub(startTime).Microseconds(),
+	}
+
+	if err != nil {
+		pTag[LabelFailed] = DummyTagVal
+	}
+
+	metricPoint := influxdb2.NewPoint(
+		table,
+		pTag,
+		pData,
+		startTime,
+	)
+
+	mh.writeAPI.WritePoint(metricPoint)
+}
+
+func (mh *MonitoringHelper) CacheStatTool(stage string) (cacheStatFunc1, cacheStatFunc2) {
+	return func(op string, f func() error) error {
+			startTime := time.Now()
+			err := f()
+			endTime := time.Now()
+			mh.submitStoreOpStat(startTime, endTime, mh.memcStat, op, stage, err)
+			return err
+		}, func(op string, f func() (*memcache.Item, error)) (*memcache.Item, error) {
+			startTime := time.Now()
+			it, err := f()
+			endTime := time.Now()
+			mh.submitStoreOpStat(startTime, endTime, mh.mgoStat, op, stage, err)
+			return it, err
+		}
+}
+
+func (mh *MonitoringHelper) DBStatTool(stage string) (dbStatFunc1, dbStatFunc2) {
+	return func(opType string, callback func() error) error {
+			startTime := time.Now()
+			err := callback()
+			endTime := time.Now()
+			mh.submitStoreOpStat(startTime, endTime, mh.mgoStat, opType, stage, err)
+			return err
+		}, func(opType string, callback func() (int, error)) (int, error) {
+			startTime := time.Now()
+			count, err := callback()
+			endTime := time.Now()
+			mh.submitStoreOpStat(startTime, endTime, mh.mgoStat, opType, stage, err)
+			return count, err
+		}
 }

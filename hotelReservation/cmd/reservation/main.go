@@ -64,7 +64,12 @@ func main() {
 	}
 	flag.Parse()
 
-	mongoSession := initializeDatabase(reserveMongoAddr)
+	monHelper := common.NewMonitoringHelper(
+		common.ServiceResv,
+		result,
+	)
+
+	mongoSession := initializeDatabase(monHelper, reserveMongoAddr)
 	defer mongoSession.Close()
 
 	fmt.Printf("reservation memc addr port = %s\n", result["ReserveMemcAddress"])
@@ -96,10 +101,7 @@ func main() {
 		IpAddr:       servIp,
 		MongoSession: mongoSession,
 		MemcClient:   memcClient,
-		Monitor: common.NewMonitoringHelper(
-			common.ServiceResv,
-			result,
-		),
+		Monitor:      monHelper,
 	}
 	log.Fatal(srv.Run())
 }

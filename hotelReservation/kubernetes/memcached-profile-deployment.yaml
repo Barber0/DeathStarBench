@@ -37,6 +37,15 @@ spec:
         app: memcached-profile
         io.kompose.service: memcached-profile
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.6"
       containers:
         - env:
             - name: MEMCACHED_CACHE_SIZE
@@ -60,7 +69,5 @@ spec:
             - containerPort: 11211
           resources:
             requests:
-              cpu: 10m
-            limits:
-              cpu: 350m
+              cpu: 300m
       restartPolicy: Always

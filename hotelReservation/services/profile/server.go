@@ -119,9 +119,13 @@ func (s *Server) GetProfiles(ctx context.Context, req *pb.Request) (*pb.Result, 
 
 	// one hotel should only have one profile
 
+	cacheStat1, cacheStat2 := s.Monitor.CacheStatTool(common.DbStageRun)
+
 	for _, i := range req.HotelIds {
 		// first check memcached
-		item, err := s.MemcClient.Get(i)
+		item, err := cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
+			return s.MemcClient.Get(i)
+		})
 		if err == nil {
 			// memcached hit
 			// profile_str := string(item.Value)
@@ -135,12 +139,16 @@ func (s *Server) GetProfiles(ctx context.Context, req *pb.Request) (*pb.Result, 
 
 		} else if err == memcache.ErrCacheMiss {
 			// memcached miss, set up mongo connection
+			dbStat1, _ := s.Monitor.DBStatTool(common.DbStageRun)
+
 			session := s.MongoSession.Copy()
 			defer session.Close()
 			c := session.DB("profile-db").C("hotels")
 
 			hotel_prof := new(pb.Hotel)
-			err := c.Find(bson.M{"id": i}).One(&hotel_prof)
+			err := dbStat1(common.DbOpRead, func() error {
+				return c.Find(bson.M{"id": i}).One(&hotel_prof)
+			})
 
 			if err != nil {
 				log.Println("Failed get hotels data: ", err)
@@ -155,7 +163,9 @@ func (s *Server) GetProfiles(ctx context.Context, req *pb.Request) (*pb.Result, 
 			memc_str := string(prof_json)
 
 			// write to memcached
-			s.MemcClient.Set(&memcache.Item{Key: i, Value: []byte(memc_str)})
+			cacheStat1(common.DbOpInsert, func() error {
+				return s.MemcClient.Set(&memcache.Item{Key: i, Value: []byte(memc_str)})
+			})
 
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)

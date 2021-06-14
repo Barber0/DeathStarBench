@@ -22,25 +22,35 @@ spec:
         kompose.version: 1.22.0 (955b78124)
         sidecar.istio.io/statsInclusionPrefixes: cluster.outbound,cluster_manager,listener_manager,http_mixer_filter,tcp_mixer_filter,server,cluster.xds-grp,listener,connection_manager
         sidecar.istio.io/statsInclusionRegexps: http.*
-      creationTimestamp: null
       labels:
         app: user
         io.kompose.service: user
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.3"
+                  - key: disktype
+                    operator: NotIn
+                    values:
+                      - premium
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_proto:0.0.9-fix6
+          image: simonalphafang/hotel_reserve_proto:0.0.10-test
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-user
           ports:
             - containerPort: 8086
             - containerPort: 2112
           resources:
-            requests:
-              cpu: 10m
             limits:
-              cpu: 350m
+              cpu: 400m
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"

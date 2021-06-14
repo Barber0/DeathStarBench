@@ -48,7 +48,7 @@ func (s *Server) Run() error {
 	}
 
 	if s.hotels == nil {
-		s.hotels = loadRecommendations(s.MongoSession)
+		s.hotels = loadRecommendations(s.Monitor, s.MongoSession)
 	}
 
 	opts := []grpc.ServerOption{
@@ -169,12 +169,15 @@ func (s *Server) GetRecommendations(ctx context.Context, req *pb.Request) (*pb.R
 }
 
 // loadRecommendations loads hotel recommendations from mongodb.
-func loadRecommendations(session *mgo.Session) map[string]Hotel {
+func loadRecommendations(monHelper *common.MonitoringHelper, session *mgo.Session) map[string]Hotel {
 	// session, err := mgo.Dial("mongodb-recommendation")
 	// if err != nil {
 	// 	panic(err)
 	// }
 	// defer session.Close()
+
+	dbStat1, _ := monHelper.DBStatTool(common.DbStageRun)
+
 	s := session.Copy()
 	defer s.Close()
 
@@ -182,7 +185,9 @@ func loadRecommendations(session *mgo.Session) map[string]Hotel {
 
 	// unmarshal json profiles
 	var hotels []Hotel
-	err := c.Find(bson.M{}).All(&hotels)
+	err := dbStat1(common.DbOpScan, func() error {
+		return c.Find(bson.M{}).All(&hotels)
+	})
 	if err != nil {
 		log.Println("Failed get hotels data: ", err)
 	}
