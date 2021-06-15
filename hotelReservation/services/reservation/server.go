@@ -86,6 +86,7 @@ func (s *Server) Run() error {
 // Shutdown cleans up any processes
 func (s *Server) Shutdown() {
 	s.Registry.Deregister(name)
+	s.Monitor.Close()
 }
 
 // MakeReservation makes a reservation based on given information
