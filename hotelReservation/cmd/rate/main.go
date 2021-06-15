@@ -71,14 +71,18 @@ func main() {
 		result,
 	)
 
-	mongoSession := initializeDatabase(monHelper, rateMongoAddr)
+	memcIdleConn, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcIdleConn, nil))
+	memcTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcTimeout, nil))
 
 	fmt.Printf("rate memc addr port = %s\n", rateMemcAddr)
 	memcClient := memcache.New(rateMemcAddr)
-	memcClient.Timeout = time.Second * 2
-	memcClient.MaxIdleConns = 512
+	memcClient.Timeout = time.Second * time.Duration(memcTimeout)
+	memcClient.MaxIdleConns = memcIdleConn
 
+	mongoSession := initializeDatabase(monHelper, rateMongoAddr)
 	defer mongoSession.Close()
+	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
+	mongoSession.SetPoolLimit(poolLimit)
 
 	fmt.Printf("rate ip = %s, port = %d\n", servIp, servPort)
 
@@ -98,8 +102,7 @@ func main() {
 	}()
 
 	srv := &rate.Server{
-		Tracer: tracer,
-		// Port:     *port,
+		Tracer:       tracer,
 		Registry:     registryCli,
 		Port:         servPort,
 		IpAddr:       servIp,

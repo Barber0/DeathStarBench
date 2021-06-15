@@ -7,6 +7,7 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/tls"
+	"strconv"
 
 	// "encoding/json"
 	"fmt"
@@ -49,9 +50,11 @@ func (s *Server) Run() error {
 		s.users = loadUsers(s.Monitor, s.MongoSession)
 	}
 
+	keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
+
 	opts := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			Timeout: 120 * time.Second,
+			Timeout: time.Duration(keepaliveTimeout) * time.Second,
 		}),
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,

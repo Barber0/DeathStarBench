@@ -73,22 +73,25 @@ var podName = getPodName()
 
 func NewMonitoringHelper(serviceName string, config map[string]string) *MonitoringHelper {
 
-	influxBatchSize, _ := strconv.Atoi(config[CfgKeyInfluxBatchSize])
-	influxFlushInterval, _ := strconv.Atoi(config[CfgKeyInfluxFlushInterval])
+	influxBatchSize, _ := strconv.Atoi(GetCfgData(CfgKeyInfluxBatchSize, config))
+	influxFlushInterval, _ := strconv.Atoi(GetCfgData(CfgKeyInfluxFlushInterval, config))
 	opt := influxdb2.DefaultOptions().
 		SetBatchSize(uint(influxBatchSize)).
 		SetFlushInterval(uint(influxFlushInterval))
-	cli := influxdb2.NewClientWithOptions("http://influxdb.autosys:8086", config[CfgKeyInfluxToken], opt)
+	cli := influxdb2.NewClientWithOptions("http://influxdb.autosys:8086", GetCfgData(CfgKeyInfluxToken, config), opt)
 
 	helper := &MonitoringHelper{
 		serviceName: serviceName,
 		podName:     podName,
 		metricMap:   make(map[string]prometheus.Gauge),
 		influxCli:   cli,
-		writeAPI:    cli.WriteAPI(config[CfgKeyInfluxOrg], config[CfgKeyInfluxBucket]),
-		serviceStat: config[CfgKeyServiceStat],
-		mgoStat:     config[CfgKeyMgoStat],
-		memcStat:    config[CfgKeyMemcStat],
+		writeAPI: cli.WriteAPI(
+			GetCfgData(CfgKeyInfluxOrg, config),
+			GetCfgData(CfgKeyInfluxBucket, config),
+		),
+		serviceStat: GetCfgData(CfgKeyServiceStat, config),
+		mgoStat:     GetCfgData(CfgKeyMgoStat, config),
+		memcStat:    GetCfgData(CfgKeyMemcStat, config),
 	}
 
 	return helper
@@ -100,6 +103,16 @@ func getCtxData(m map[string]string, md metadata.MD, keys ...string) {
 			m[key] = dataArr[0]
 		}
 	}
+}
+
+func GetCfgData(key string, config map[string]string) string {
+	if val := os.Getenv(key); key != "" {
+		return val
+	}
+	if config == nil {
+		return ""
+	}
+	return config[key]
 }
 
 func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {

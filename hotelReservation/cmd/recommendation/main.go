@@ -68,6 +68,9 @@ func main() {
 	mongoSession := initializeDatabase(monHelper, recommendationMongoAddr)
 	defer mongoSession.Close()
 
+	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
+	mongoSession.SetPoolLimit(poolLimit)
+
 	fmt.Printf("recommendation ip = %s, port = %d\n", servIp, servPort)
 
 	tracer, err := tracing.Init(common.ServiceReco, *jaegeraddr)

@@ -68,6 +68,9 @@ func main() {
 	mongoSession := initializeDatabase(monHelper, userMongoAddr)
 	defer mongoSession.Close()
 
+	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
+	mongoSession.SetPoolLimit(poolLimit)
+
 	fmt.Printf("user ip = %s, port = %d\n", servIp, servPort)
 
 	tracer, err := tracing.Init(common.ServiceUser, *jaegeraddr)

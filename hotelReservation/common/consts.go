@@ -18,4 +18,9 @@ const (
 	CfgKeyServiceStat         = "InfluxServiceStat"
 	CfgKeyMgoStat             = "InfluxMgoStat"
 	CfgKeyMemcStat            = "InfluxMemcStat"
+
+	CfgKeySvrDbConn       = "SVR_DBCONN"
+	CfgKeySvrTimeout      = "SVR_TIMEOUT"
+	CfgKeySvrMemcIdleConn = "SVR_MEMC_IDLE_CONN"
+	CfgKeySvrMemcTimeout  = "SVR_MEMC_TIMEOUT"
 )

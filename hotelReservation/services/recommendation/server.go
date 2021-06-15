@@ -17,6 +17,7 @@ import (
 	"hotel_reserve/registry"
 	pb "hotel_reserve/services/recommendation/proto"
 	"hotel_reserve/tls"
+	"strconv"
 
 	// "io/ioutil"
 	"log"
@@ -51,9 +52,11 @@ func (s *Server) Run() error {
 		s.hotels = loadRecommendations(s.Monitor, s.MongoSession)
 	}
 
+	keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
+
 	opts := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			Timeout: 120 * time.Second,
+			Timeout: time.Duration(keepaliveTimeout) * time.Second,
 		}),
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
@@ -78,19 +81,6 @@ func (s *Server) Run() error {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
-	// // register the service
-	// jsonFile, err := os.Open("config.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// defer jsonFile.Close()
-
-	// byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// var result map[string]string
-	// json.Unmarshal([]byte(byteValue), &result)
 
 	err = s.Registry.Register(name, s.IpAddr, s.Port)
 	if err != nil {

@@ -73,11 +73,16 @@ func main() {
 
 	mongoSession := initializeDatabase(monHelper, reserveMongoAddr)
 	defer mongoSession.Close()
+	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
+	mongoSession.SetPoolLimit(poolLimit)
+
+	memcIdleConn, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcIdleConn, nil))
+	memcTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcTimeout, nil))
 
 	fmt.Printf("reservation memc addr port = %s\n", result["ReserveMemcAddress"])
 	memcClient := memcache.New(reserveMemcAddr)
-	memcClient.Timeout = time.Second * 2
-	memcClient.MaxIdleConns = 512
+	memcClient.Timeout = time.Second * time.Duration(memcTimeout)
+	memcClient.MaxIdleConns = memcIdleConn
 
 	fmt.Printf("reservation ip = %s, port = %d\n", servIp, servPort)
 

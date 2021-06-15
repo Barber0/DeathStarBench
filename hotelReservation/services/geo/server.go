@@ -11,6 +11,7 @@ import (
 	"hotel_reserve/registry"
 	pb "hotel_reserve/services/geo/proto"
 	"hotel_reserve/tls"
+	"strconv"
 
 	"log"
 	"net"
@@ -53,9 +54,11 @@ func (s *Server) Run() error {
 		s.index = newGeoIndex(s.Monitor, s.MongoSession)
 	}
 
+	keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
+
 	opts := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			Timeout: 120 * time.Second,
+			Timeout: time.Duration(keepaliveTimeout) * time.Second,
 		}),
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			PermitWithoutStream: true,
@@ -83,21 +86,6 @@ func (s *Server) Run() error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
-
-	// register the service
-	// jsonFile, err := os.Open("config.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// defer jsonFile.Close()
-
-	// byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// var result map[string]string
-	// json.Unmarshal([]byte(byteValue), &result)
-
-	// fmt.Printf("geo server ip = %s, port = %d\n", s.IpAddr, s.Port)
 
 	err = s.Registry.Register(name, s.IpAddr, s.Port)
 	if err != nil {

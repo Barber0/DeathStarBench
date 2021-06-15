@@ -26,6 +26,7 @@ spec:
       labels:
         app: frontend
         io.kompose.service: frontend
+        role: server
     spec:
       affinity:
         nodeAffinity:
@@ -43,7 +44,7 @@ spec:
       containers:
         - command:
             - frontend
-          image: simonalphafang/hotel_reserve_proto:0.0.10-test
+          image: simonalphafang/hotel_reserve_proto:0.0.10-grace
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-frontend
           ports:
