@@ -14,8 +14,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"time"
@@ -104,5 +106,14 @@ func main() {
 		MemcClient:   memcClient,
 		Monitor:      monHelper,
 	}
-	log.Fatal(srv.Run())
+
+	sigC := make(chan os.Signal)
+	signal.Notify(sigC, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
+
+	go log.Println(srv.Run())
+
+	sig := <-sigC
+	log.Printf("receive signal: %v\n", sig)
+	srv.Shutdown()
+	log.Println("service shutdown")
 }
