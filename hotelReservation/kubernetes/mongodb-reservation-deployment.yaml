@@ -51,10 +51,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: cpufreq
-                    operator: In
+                  - key: disktype
+                    operator: NotIn
                     values:
-                      - "2.6"
+                      - premium
       containers:
         - image: mongo
           name: hotel-reserv-reservation-mongo
@@ -67,16 +67,16 @@ spec:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db
           volumeMounts:
-            - mountPath: /data/db
-              name: reservation
+            #            - mountPath: /data/db
+            #              name: reservation
             - mountPath: /tmp/mongodb
               name: mongodb-conf
       hostname: reservation-db
       restartPolicy: Always
       volumes:
-        - name: reservation
-          persistentVolumeClaim:
-            claimName: reservation-pvc
+        #        - name: reservation
+        #          persistentVolumeClaim:
+        #            claimName: reservation-pvc
         - name: mongodb-conf
           configMap:
             name: mongodb-reservation

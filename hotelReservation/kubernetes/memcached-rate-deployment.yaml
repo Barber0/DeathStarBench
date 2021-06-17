@@ -42,10 +42,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: cpufreq
+                  - key: disktype
                     operator: In
                     values:
-                      - "2.6"
+                      - premium
       containers:
         - env:
             - name: MEMCACHED_CACHE_SIZE

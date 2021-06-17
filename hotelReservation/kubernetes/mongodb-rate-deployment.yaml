@@ -52,10 +52,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: cpufreq
-                    operator: In
+                  - key: disktype
+                    operator: NotIn
                     values:
-                      - "2.6"
+                      - premium
       containers:
         - image: mongo
           name: hotel-reserv-rate-mongo
@@ -68,15 +68,15 @@ spec:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db
           volumeMounts:
-            - mountPath: /data/db
-              name: rate
+            #            - mountPath: /data/db
+            #              name: rate
             - mountPath: /tmp/mongodb
               name: mongodb-config
       restartPolicy: Always
       volumes:
-        - name: rate
-          persistentVolumeClaim:
-            claimName: rate-pvc
+        #        - name: rate
+        #          persistentVolumeClaim:
+        #            claimName: rate-pvc
         - name: mongodb-config
           configMap:
             name: mongodb-rate

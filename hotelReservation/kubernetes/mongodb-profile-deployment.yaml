@@ -52,10 +52,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: cpufreq
-                    operator: In
+                  - key: disktype
+                    operator: NotIn
                     values:
-                      - "2.6"
+                      - premium
       containers:
         - image: mongo
           name: hotel-reserv-profile-mongo
@@ -68,16 +68,16 @@ spec:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db
           volumeMounts:
-            - mountPath: /data/db
-              name: profile
+            #            - mountPath: /data/db
+            #              name: profile
             - mountPath: /tmp/mongodb
               name: mongodb-conf
       hostname: profile-db
       restartPolicy: Always
       volumes:
-        - name: profile
-          persistentVolumeClaim:
-            claimName: profile-pvc
+        #        - name: profile
+        #          persistentVolumeClaim:
+        #            claimName: profile-pvc
         - name: mongodb-conf
           configMap:
             name: mongodb-profile

@@ -35,10 +35,6 @@ spec:
                     operator: In
                     values:
                       - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.3"
       containers:
         - image: jaegertracing/all-in-one:latest
           name: hotel-reserv-jaeger

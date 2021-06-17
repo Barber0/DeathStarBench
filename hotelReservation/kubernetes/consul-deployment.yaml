@@ -36,10 +36,6 @@ spec:
                     operator: In
                     values:
                       - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.3"
       containers:
         - image: consul:latest
           name: consul

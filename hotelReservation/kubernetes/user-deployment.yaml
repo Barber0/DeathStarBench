@@ -40,10 +40,6 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.3"
                   - key: disktype
                     operator: NotIn
                     values:
