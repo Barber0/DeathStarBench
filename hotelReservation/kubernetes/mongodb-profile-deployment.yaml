@@ -56,6 +56,10 @@ spec:
                     operator: NotIn
                     values:
                       - premium
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.6"
       containers:
         - image: mongo
           name: hotel-reserv-profile-mongo
@@ -63,7 +67,7 @@ spec:
             - containerPort: 27017
           resources:
             limits:
-              cpu: 400m
+              cpu: 300m
           args:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db

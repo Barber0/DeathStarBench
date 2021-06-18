@@ -45,10 +45,14 @@ spec:
                     operator: NotIn
                     values:
                       - premium
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.3"
       containers:
         - command:
             - search
-          image: simonalphafang/hotel_reserve_proto:0.0.10-grace
+          image: simonalphafang/hotel_reserve_proto:0.0.10
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-search
           ports:

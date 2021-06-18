@@ -44,6 +44,10 @@ spec:
                     operator: NotIn
                     values:
                       - premium
+                  - key: cpufreq
+                    operator: In
+                    values:
+                      - "2.6"
       containers:
         - env:
             - name: MEMCACHED_CACHE_SIZE

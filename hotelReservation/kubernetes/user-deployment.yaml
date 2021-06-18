@@ -54,7 +54,7 @@ spec:
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_proto:0.0.10-grace
+          image: simonalphafang/hotel_reserve_proto:0.0.10
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-user
           ports:

@@ -26,13 +26,5 @@
   "UserIP": "x.x.x.x",
   "UserPort": "8086",
   "UserMongoAddress": "x.x.x.x:27023",
-  "Orchestrator": "k8s",
-  "InfluxToken": "EFfL4Bzeq0ULqJwrz4Xk0_5ytSbkLM2KybArizfw7yjaTh-2EE_v6OLw9PJCG9y5Kc_R5psWbZMeUBIFJSkOLA==",
-  "InfluxOrg": "autosys",
-  "InfluxBucket": "ingestion",
-  "InfluxBatchSize": "100",
-  "InfluxFlushInterval": "60",
-  "InfluxServiceStat": "service_metric",
-  "InfluxMgoStat": "mgo_metric",
-  "InfluxMemcStat": "memc_metric"
+  "Orchestrator": "k8s"
 }

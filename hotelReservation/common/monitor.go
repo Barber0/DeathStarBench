@@ -106,7 +106,7 @@ func getCtxData(m map[string]string, md metadata.MD, keys ...string) {
 }
 
 func GetCfgData(key string, config map[string]string) string {
-	if val := os.Getenv(key); key != "" {
+	if val := os.Getenv(key); val != "" {
 		return val
 	}
 	if config == nil {

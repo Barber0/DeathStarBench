@@ -44,7 +44,7 @@ spec:
       containers:
         - command:
             - frontend
-          image: simonalphafang/hotel_reserve_proto:0.0.10-grace
+          image: simonalphafang/hotel_reserve_proto:0.0.10
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-frontend
           ports:
@@ -60,5 +60,48 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+
+            - name: InfluxToken
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxToken
+            - name: InfluxOrg
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxOrg
+            - name: InfluxBucket
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxBucket
+            - name: InfluxBatchSize
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxBatchSize
+            - name: InfluxFlushInterval
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxFlushInterval
+            - name: InfluxServiceStat
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxServiceStat
+            - name: InfluxMgoStat
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxMgoStat
+            - name: InfluxMemcStat
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: InfluxMemcStat
+
+
       restartPolicy: Always
 status: { }
