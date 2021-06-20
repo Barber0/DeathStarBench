@@ -74,4 +74,5 @@ spec:
           resources:
             requests:
               cpu: 300m
+              memory: 1.2G
       restartPolicy: Always

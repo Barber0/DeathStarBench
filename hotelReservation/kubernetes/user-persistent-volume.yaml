@@ -12,11 +12,15 @@
 #  hostPath:
 #    path: /data/volumes/user-pv   # Where all the hard drives are mounted
 #    type: Directory
-##  nodeAffinity:     # Use nodeAffinity to ensure it will only be mounted on the node with harddrives.
-##    required:
-##      nodeSelectorTerms:
-##        - matchExpressions:
-##            - key: kubernetes.io/hostname
-##              operator: In
-##              values:
-##                - autosys-2
+#  nodeAffinity:
+#    required:
+#      nodeSelectorTerms:
+#        - matchExpressions:
+#            - key: disktype
+#              operator: NotIn
+#              values:
+#                - premium
+#            - key: cpufreq
+#              operator: In
+#              values:
+#                - "2.6"

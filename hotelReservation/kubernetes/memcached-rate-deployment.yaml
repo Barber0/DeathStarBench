@@ -74,5 +74,6 @@ spec:
           resources:
             limits:
               cpu: 300m
+              memory: 1.2G
       restartPolicy: Always
 status: { }
