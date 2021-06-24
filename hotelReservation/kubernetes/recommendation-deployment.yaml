@@ -3,8 +3,10 @@ kind: ConfigMap
 metadata:
   name: svr-recommendation
 data:
-  dbconn: "120"
+  dbconn: "4096"
   timeout: "120"
+  GOGC: "100"
+  GOMAXPROCS: "2"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,7 +24,8 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: recommendation
-  strategy: { }
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -36,19 +39,19 @@ spec:
         io.kompose.service: recommendation
         role: server
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: disktype
-                    operator: NotIn
-                    values:
-                      - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.3"
+      #      affinity:
+      #        nodeAffinity:
+      #          requiredDuringSchedulingIgnoredDuringExecution:
+      #            nodeSelectorTerms:
+      #              - matchExpressions:
+      #                  - key: disktype
+      #                    operator: NotIn
+      #                    values:
+      #                      - premium
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.3"
       initContainers:
         - name: db-prob
           image: simonalphafang/alpine-telnet:0.0.1
@@ -59,7 +62,7 @@ spec:
       containers:
         - command:
             - recommendation
-          image: simonalphafang/hotel_reserve_proto:0.0.10
+          image: simonalphafang/hotel_reserve_proto:0.0.11-notracing
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-recommendation
           ports:
@@ -67,7 +70,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 400m
+              cpu: 200m
+              memory: 600M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
@@ -125,4 +129,14 @@ spec:
                 configMapKeyRef:
                   name: svr-recommendation
                   key: dbconn
+            - name: GOGC
+              valueFrom:
+                configMapKeyRef:
+                  key: GOGC
+                  name: svr-recommendation
+            - name: GOMAXPROCS
+              valueFrom:
+                configMapKeyRef:
+                  key: GOMAXPROCS
+                  name: svr-recommendation
       restartPolicy: Always

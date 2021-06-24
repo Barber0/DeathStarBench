@@ -1,14 +1,14 @@
 package common
 
 const (
-	ServiceFrontend = "srv-frontend"
-	ServiceGeo      = "srv-geo"
-	ServiceProfile  = "srv-profile"
-	ServiceRate     = "srv-rate"
-	ServiceReco     = "srv-recommendation"
-	ServiceResv     = "srv-reservation"
-	ServiceSearch   = "srv-search"
-	ServiceUser     = "srv-user"
+	ServiceFrontend = "frontend"
+	ServiceGeo      = "geo"
+	ServiceProfile  = "profile"
+	ServiceRate     = "rate"
+	ServiceReco     = "recommendation"
+	ServiceResv     = "reservation"
+	ServiceSearch   = "search"
+	ServiceUser     = "user"
 
 	CfgKeyInfluxBatchSize     = "InfluxBatchSize"
 	CfgKeyInfluxFlushInterval = "InfluxFlushInterval"

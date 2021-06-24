@@ -27,15 +27,15 @@ spec:
         app: consul
         io.kompose.service: consul
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: disktype
-                    operator: In
-                    values:
-                      - premium
+      #      affinity:
+      #        nodeAffinity:
+      #          requiredDuringSchedulingIgnoredDuringExecution:
+      #            nodeSelectorTerms:
+      #              - matchExpressions:
+      #                  - key: disktype
+      #                    operator: In
+      #                    values:
+      #                      - premium
       containers:
         - image: consul:latest
           name: consul
@@ -45,4 +45,8 @@ spec:
             - containerPort: 8500
             - containerPort: 53
               protocol: UDP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 600M
       restartPolicy: Always

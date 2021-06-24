@@ -35,19 +35,19 @@ spec:
         app: memcached-reserve
         io.kompose.service: memcached-reserve
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: disktype
-                    operator: NotIn
-                    values:
-                      - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.6"
+      #      affinity:
+      #        nodeAffinity:
+      #          requiredDuringSchedulingIgnoredDuringExecution:
+      #            nodeSelectorTerms:
+      #              - matchExpressions:
+      #                  - key: disktype
+      #                    operator: NotIn
+      #                    values:
+      #                      - premium
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.6"
       containers:
         - env:
             - name: MEMCACHED_CACHE_SIZE
@@ -71,6 +71,6 @@ spec:
             - containerPort: 11211
           resources:
             limits:
-              cpu: 300m
-              memory: 1.2G
+              cpu: 200m
+              memory: 600M
       restartPolicy: Always

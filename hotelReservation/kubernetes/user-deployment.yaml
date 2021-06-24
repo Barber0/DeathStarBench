@@ -3,8 +3,10 @@ kind: ConfigMap
 metadata:
   name: svr-user
 data:
-  dbconn: "120"
+  dbconn: "4096"
   timeout: "120"
+  GOGC: "100"
+  GOMAXPROCS: "2"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,7 +24,8 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: user
-  strategy: { }
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -35,15 +38,15 @@ spec:
         io.kompose.service: user
         role: server
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: disktype
-                    operator: NotIn
-                    values:
-                      - premium
+      #      affinity:
+      #        nodeAffinity:
+      #          requiredDuringSchedulingIgnoredDuringExecution:
+      #            nodeSelectorTerms:
+      #              - matchExpressions:
+      #                  - key: disktype
+      #                    operator: NotIn
+      #                    values:
+      #                      - premium
       initContainers:
         - name: db-prob
           image: simonalphafang/alpine-telnet:0.0.1
@@ -54,7 +57,7 @@ spec:
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_proto:0.0.10
+          image: simonalphafang/hotel_reserve_proto:0.0.11-notracing
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-user
           ports:
@@ -62,7 +65,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 400m
+              cpu: 200m
+              memory: 600M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
@@ -122,4 +126,14 @@ spec:
                 configMapKeyRef:
                   name: svr-user
                   key: dbconn
+            - name: GOGC
+              valueFrom:
+                configMapKeyRef:
+                  name: svr-user
+                  key: GOGC
+            - name: GOMAXPROCS
+              valueFrom:
+                configMapKeyRef:
+                  name: svr-user
+                  key: GOMAXPROCS
       restartPolicy: Always

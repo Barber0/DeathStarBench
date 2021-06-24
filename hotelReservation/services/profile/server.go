@@ -19,8 +19,6 @@ import (
 	// "os"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -33,7 +31,7 @@ const name = common.ServiceProfile
 
 // Server implements the profile service
 type Server struct {
-	Tracer       opentracing.Tracer
+	//Tracer       opentracing.Tracer
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
@@ -60,7 +58,7 @@ func (s *Server) Run() error {
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_prometheus.UnaryServerInterceptor,
 			s.Monitor.MetricInterceptor(),
-			otgrpc.OpenTracingServerInterceptor(s.Tracer),
+			//otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
 	}
 

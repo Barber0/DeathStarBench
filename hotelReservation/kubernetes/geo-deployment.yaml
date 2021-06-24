@@ -3,8 +3,10 @@ kind: ConfigMap
 metadata:
   name: svr-geo
 data:
-  dbconn: "120"
+  dbconn: "4096"
   timeout: "120"
+  GOGC: "100"
+  GOMAXPROCS: "2"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,7 +24,8 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: geo
-  strategy: { }
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -36,19 +39,19 @@ spec:
         io.kompose.service: geo
         role: server
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.3"
-                  - key: disktype
-                    operator: NotIn
-                    values:
-                      - premium
+      #      affinity:
+      #        nodeAffinity:
+      #          requiredDuringSchedulingIgnoredDuringExecution:
+      #            nodeSelectorTerms:
+      #              - matchExpressions:
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.3"
+      #                  - key: disktype
+      #                    operator: NotIn
+      #                    values:
+      #                      - premium
       initContainers:
         - name: db-prob
           image: simonalphafang/alpine-telnet:0.0.1
@@ -59,7 +62,7 @@ spec:
       containers:
         - command:
             - geo
-          image: simonalphafang/hotel_reserve_proto:0.0.10
+          image: simonalphafang/hotel_reserve_proto:0.0.11-notracing
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-geo
           ports:
@@ -67,7 +70,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 400m
+              cpu: 200m
+              memory: 600M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
@@ -125,4 +129,14 @@ spec:
                 configMapKeyRef:
                   name: svr-geo
                   key: dbconn
+            - name: GOGC
+              valueFrom:
+                configMapKeyRef:
+                  name: svr-geo
+                  key: GOGC
+            - name: GOMAXPROCS
+              valueFrom:
+                configMapKeyRef:
+                  name: svr-geo
+                  key: GOMAXPROCS
       restartPolicy: Always

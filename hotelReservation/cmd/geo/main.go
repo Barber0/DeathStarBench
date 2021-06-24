@@ -8,7 +8,6 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/geo"
-	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
@@ -72,10 +71,10 @@ func main() {
 
 	fmt.Printf("geo ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(common.ServiceGeo, *jaegeraddr)
-	if err != nil {
-		panic(err)
-	}
+	//tracer, err := tracing.Init(common.ServiceGeo, *jaegeraddr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
@@ -90,7 +89,7 @@ func main() {
 	srv := &geo.Server{
 		Port:         servPort,
 		IpAddr:       servIp,
-		Tracer:       tracer,
+		//Tracer:       tracer,
 		Registry:     registryCli,
 		MongoSession: mongoSession,
 		Monitor:      monHelper,

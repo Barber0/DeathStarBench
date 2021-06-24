@@ -17,9 +17,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/hailocab/go-geoindex"
-	opentracing "github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -36,8 +34,8 @@ type Server struct {
 	index *geoindex.ClusteringIndex
 	uuid  string
 
-	Registry     *registry.Client
-	Tracer       opentracing.Tracer
+	Registry *registry.Client
+	//Tracer       opentracing.Tracer
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
@@ -67,7 +65,7 @@ func (s *Server) Run() error {
 			grpc_middleware.ChainUnaryServer(
 				grpc_prometheus.UnaryServerInterceptor,
 				s.Monitor.MetricInterceptor(),
-				otgrpc.OpenTracingServerInterceptor(s.Tracer),
+				//otgrpc.OpenTracingServerInterceptor(s.Tracer),
 			),
 		),
 	}

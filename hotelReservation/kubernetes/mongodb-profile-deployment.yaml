@@ -47,19 +47,19 @@ spec:
         app: mongodb-profile
         io.kompose.service: mongodb-profile
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: disktype
-                    operator: NotIn
-                    values:
-                      - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.6"
+      #      affinity:
+      #        nodeAffinity:
+      #          requiredDuringSchedulingIgnoredDuringExecution:
+      #            nodeSelectorTerms:
+      #              - matchExpressions:
+      #                  - key: disktype
+      #                    operator: NotIn
+      #                    values:
+      #                      - premium
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.6"
       containers:
         - image: mongo
           name: hotel-reserv-profile-mongo
@@ -67,8 +67,8 @@ spec:
             - containerPort: 27017
           resources:
             limits:
-              cpu: 300m
-              memory: 1.2G
+              cpu: 200m
+              memory: 600M
           args:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db

@@ -8,7 +8,6 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/profile"
-	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
@@ -87,10 +86,10 @@ func main() {
 
 	fmt.Printf("profile ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(common.ServiceProfile, *jaegeraddr)
-	if err != nil {
-		panic(err)
-	}
+	//tracer, err := tracing.Init(common.ServiceProfile, *jaegeraddr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
@@ -103,7 +102,7 @@ func main() {
 	}()
 
 	srv := profile.Server{
-		Tracer: tracer,
+		//Tracer: tracer,
 		// Port:     *port,
 		Registry:     registryCli,
 		Port:         servPort,
