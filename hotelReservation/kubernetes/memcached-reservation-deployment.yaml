@@ -23,6 +23,8 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: memcached-reserve
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -44,10 +46,10 @@ spec:
                     operator: NotIn
                     values:
                       - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.6"
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.6"
       containers:
         - env:
             - name: MEMCACHED_CACHE_SIZE

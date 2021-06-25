@@ -22,7 +22,8 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: user
-  strategy: { }
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -62,7 +63,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 400m
+              cpu: 300m
+              memory: 1.2G
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"

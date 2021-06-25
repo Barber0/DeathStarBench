@@ -55,10 +55,10 @@ spec:
                     operator: NotIn
                     values:
                       - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.6"
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.6"
       containers:
         - image: mongo
           name: hotel-reserv-reservation-mongo

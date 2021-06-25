@@ -22,7 +22,8 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: recommendation
-  strategy: { }
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
@@ -45,10 +46,10 @@ spec:
                     operator: NotIn
                     values:
                       - premium
-                  - key: cpufreq
-                    operator: In
-                    values:
-                      - "2.3"
+      #                  - key: cpufreq
+      #                    operator: In
+      #                    values:
+      #                      - "2.3"
       initContainers:
         - name: db-prob
           image: simonalphafang/alpine-telnet:0.0.1
@@ -67,7 +68,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 400m
+              cpu: 300m
+              memory: 1.2G
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"

@@ -50,6 +50,10 @@ spec:
               protocol: UDP
             - containerPort: 6832
               protocol: UDP
+          resources:
+            limits:
+              cpu: 300m
+              memory: 1.2G
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
