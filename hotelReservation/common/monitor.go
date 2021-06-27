@@ -161,7 +161,6 @@ func (mh *MonitoringHelper) SenderMetricInterceptor() grpc.UnaryClientIntercepto
 			LabelSrcService: {mh.serviceName},
 			LabelSrcPod:     {mh.podName},
 		})
-
 		return invoker(outCtx, method, req, reply, cc, opts...)
 	}
 }
@@ -203,7 +202,7 @@ func (mh *MonitoringHelper) CacheStatTool(stage string) (cacheStatFunc1, cacheSt
 			startTime := time.Now()
 			it, err := f()
 			endTime := time.Now()
-			mh.submitStoreOpStat(startTime, endTime, mh.mgoStat, op, stage, err)
+			mh.submitStoreOpStat(startTime, endTime, mh.memcStat, op, stage, err)
 			return it, err
 		}
 }

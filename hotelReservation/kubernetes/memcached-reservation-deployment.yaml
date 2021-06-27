@@ -1,12 +1,3 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: memcached-reserve
-data:
-  MEMCACHED_CACHE_SIZE: "128"
-  MEMCACHED_THREADS: "2"
-  MEMCACHED_CONNECTIONS: "4"
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,6 +8,7 @@ metadata:
   labels:
     app: memcached-reserve
     io.kompose.service: memcached-reserve
+    role: db
   name: memcached-reserve
 spec:
   replicas: 1
@@ -35,40 +27,22 @@ spec:
         app: memcached-reserve
         io.kompose.service: memcached-reserve
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.6"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: NotIn
+                    values:
+                      - monitor
       containers:
-        - env:
-            - name: MEMCACHED_CACHE_SIZE
-              valueFrom:
-                configMapKeyRef:
-                  name: memcached-reserve
-                  key: MEMCACHED_CACHE_SIZE
-            - name: MEMCACHED_THREADS
-              valueFrom:
-                configMapKeyRef:
-                  name: memcached-reserve
-                  key: MEMCACHED_THREADS
-            - name: MEMCACHED_CONNECTIONS
-              valueFrom:
-                configMapKeyRef:
-                  name: memcached-reserve
-                  key: MEMCACHED_CONNECTIONS
-          image: memcached
-          name: hotel-reserv-reservation-mmc
+        - image: bitnami/memcached
+          name: hotel-reserv-reservation-memc
           ports:
             - containerPort: 11211
+          command:
+            - "/opt/bitnami/scripts/memcached/run.sh"
           resources:
             limits:
               cpu: 200m

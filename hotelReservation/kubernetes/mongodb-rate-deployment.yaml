@@ -26,6 +26,7 @@ metadata:
   labels:
     app: mongodb-rate
     io.kompose.service: mongodb-rate
+    role: db
   name: mongodb-rate
 spec:
   replicas: 1
@@ -47,11 +48,15 @@ spec:
         app: mongodb-rate
         io.kompose.service: mongodb-rate
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: NotIn
+                    values:
+                      - monitor
       #                  - key: disktype
       #                    operator: NotIn
       #                    values:

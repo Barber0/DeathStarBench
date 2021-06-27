@@ -1,12 +1,3 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: memcached-rate
-data:
-  MEMCACHED_CACHE_SIZE: "128"
-  MEMCACHED_THREADS: "2"
-  MEMCACHED_CONNECTIONS: "4"
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,6 +8,7 @@ metadata:
   labels:
     app: memcached-rate
     io.kompose.service: memcached-rate
+    role: db
   name: memcached-rate
 spec:
   replicas: 1
@@ -37,38 +29,20 @@ spec:
         app: memcached-rate
         io.kompose.service: memcached-rate
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.6"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: NotIn
+                    values:
+                      - monitor
       containers:
-        - env:
-            - name: MEMCACHED_CACHE_SIZE
-              valueFrom:
-                configMapKeyRef:
-                  name: memcached-rate
-                  key: MEMCACHED_CACHE_SIZE
-            - name: MEMCACHED_THREADS
-              valueFrom:
-                configMapKeyRef:
-                  name: memcached-rate
-                  key: MEMCACHED_THREADS
-            - name: MEMCACHED_CONNECTIONS
-              valueFrom:
-                configMapKeyRef:
-                  name: memcached-rate
-                  key: MEMCACHED_CONNECTIONS
-          image: memcached
-          name: hotel-reserv-rate-mmc
+        - image: bitnami/memcached
+          name: hotel-reserv-rate-memc
+          command:
+            - "/opt/bitnami/scripts/memcached/run.sh"
           ports:
             - containerPort: 11211
           resources:
@@ -76,4 +50,3 @@ spec:
               cpu: 200m
               memory: 600M
       restartPolicy: Always
-status: { }

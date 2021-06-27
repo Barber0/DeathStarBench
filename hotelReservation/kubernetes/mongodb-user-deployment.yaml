@@ -26,6 +26,7 @@ metadata:
   labels:
     app: mongodb-user
     io.kompose.service: mongodb-user
+    role: db
   name: mongodb-user
 spec:
   replicas: 1
@@ -47,11 +48,15 @@ spec:
         app: mongodb-user
         io.kompose.service: mongodb-user
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: NotIn
+                    values:
+                      - monitor
       #                  - key: disktype
       #                    operator: NotIn
       #                    values:

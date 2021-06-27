@@ -4,7 +4,7 @@ cd $(dirname $0)/../..
 
 EXEC=docker
 USER="simonalphafang"
-TAG="0.0.11-notracing"
+TAG="0.0.11-pwdcheck2"
 ROOT_FOLDER=$(pwd)
 
 PROTO_NAME=hotel_reserve_proto

@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: server-config
 data:
-  InfluxToken: "EFfL4Bzeq0ULqJwrz4Xk0_5ytSbkLM2KybArizfw7yjaTh-2EE_v6OLw9PJCG9y5Kc_R5psWbZMeUBIFJSkOLA=="
+  InfluxToken: "TBKmIVqKLDEaaFuuxotWrUgoy7Z7s0tQAU2kJr7Ht-b_OC-Hg3mJkSKeVegA8YWyjBowHGSpWMnElJ6ZuuiwhA=="
   InfluxOrg: "autosys"
   InfluxBucket: "ingestion"
   InfluxBatchSize: "100"

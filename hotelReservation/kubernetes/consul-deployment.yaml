@@ -27,11 +27,15 @@ spec:
         app: consul
         io.kompose.service: consul
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: In
+                    values:
+                      - monitor
       #                  - key: disktype
       #                    operator: In
       #                    values:

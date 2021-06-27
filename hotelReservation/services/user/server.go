@@ -28,7 +28,7 @@ const name = common.ServiceUser
 
 // Server implements the user service
 type Server struct {
-	users map[string]string
+	//users map[string]string
 
 	//Tracer       opentracing.Tracer
 	Registry     *registry.Client
@@ -44,9 +44,9 @@ func (s *Server) Run() error {
 		return fmt.Errorf("server port must be set")
 	}
 
-	if s.users == nil {
-		s.users = loadUsers(s.Monitor, s.MongoSession)
-	}
+	//if s.users == nil {
+	//	s.users = loadUsers(s.Monitor, s.MongoSession)
+	//}
 
 	keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
 
@@ -109,32 +109,25 @@ func (s *Server) Shutdown() {
 func (s *Server) CheckUser(ctx context.Context, req *pb.Request) (*pb.Result, error) {
 	res := new(pb.Result)
 
-	// fmt.Printf("CheckUser")
-
 	sum := sha256.Sum256([]byte(req.Password))
 	pass := fmt.Sprintf("%x", sum)
 
-	// session, err := mgo.Dial("mongodb-user")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
+	sess := s.MongoSession.Copy()
+	defer sess.Close()
 
-	// c := session.DB("user-db").C("user")
+	c := sess.DB("user-db").C("user")
 
-	// user := User{}
-	// err = c.Find(bson.M{"username": req.Username}).One(&user)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	res.Correct = false
-	if true_pass, found := s.users[req.Username]; found {
-		res.Correct = pass == true_pass
+	statFunc1, _ := s.Monitor.DBStatTool(common.DbStageRun)
+
+	user := User{}
+	err := statFunc1(common.DbOpRead, func() error {
+		return c.Find(bson.M{"username": req.Username}).One(&user)
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	// res.Correct = user.Password == pass
-
-	// fmt.Printf("CheckUser %d\n", res.Correct)
+	res.Correct = pass == user.Password
 
 	return res, nil
 }

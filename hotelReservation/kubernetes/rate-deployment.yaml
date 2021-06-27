@@ -1,15 +1,3 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: svr-rate
-data:
-  dbconn: "4096"
-  timeout: "120"
-  memc_timeout: "2"
-  memc_idle_conn: "512"
-  GOGC: "100"
-  GOMAXPROCS: "2"
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,6 +8,7 @@ metadata:
   labels:
     app: rate
     io.kompose.service: rate
+    role: server
   name: rate
 spec:
   replicas: 1
@@ -41,11 +30,15 @@ spec:
         io.kompose.service: rate
         role: server
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: NotIn
+                    values:
+                      - monitor
       #                  - key: disktype
       #                    operator: NotIn
       #                    values:
@@ -70,7 +63,7 @@ spec:
       containers:
         - command:
             - rate
-          image: simonalphafang/hotel_reserve_proto:0.0.11-notracing
+          image: simonalphafang/hotel_reserve_proto:0.0.11-pwdcheck2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-rate
           ports:
@@ -127,34 +120,4 @@ spec:
                 configMapKeyRef:
                   name: server-config
                   key: InfluxMemcStat
-            - name: SVR_TIMEOUT
-              valueFrom:
-                configMapKeyRef:
-                  name: svr-rate
-                  key: timeout
-            - name: SVR_DBCONN
-              valueFrom:
-                configMapKeyRef:
-                  name: svr-rate
-                  key: dbconn
-            - name: SVR_MEMC_IDLE_CONN
-              valueFrom:
-                configMapKeyRef:
-                  key: memc_idle_conn
-                  name: svr-rate
-            - name: SVR_MEMC_TIMEOUT
-              valueFrom:
-                configMapKeyRef:
-                  key: memc_timeout
-                  name: svr-rate
-            - name: GOGC
-              valueFrom:
-                configMapKeyRef:
-                  key: GOGC
-                  name: svr-rate
-            - name: GOMAXPROCS
-              valueFrom:
-                configMapKeyRef:
-                  key: GOMAXPROCS
-                  name: svr-rate
       restartPolicy: Always
