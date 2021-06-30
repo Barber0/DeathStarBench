@@ -16,5 +16,4 @@ spec:
       targetPort: 27017
   selector:
     io.kompose.service: mongodb-reservation
-status:
-  loadBalancer: {}
+  clusterIP: None

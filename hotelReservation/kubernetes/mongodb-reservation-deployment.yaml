@@ -17,7 +17,7 @@ data:
       timeZoneInfo: /usr/share/zoneinfo
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   annotations:
     kompose.cmd: kompose convert
@@ -29,12 +29,11 @@ metadata:
     role: db
   name: mongodb-reservation
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: mongodb-reservation
-  strategy:
-    type: Recreate
+  serviceName: mongodb-reserve
   template:
     metadata:
       annotations:
@@ -45,8 +44,10 @@ spec:
       labels:
         role: db
         app: mongodb-reservation
+        mongoRepl: reserve
         io.kompose.service: mongodb-reservation
     spec:
+      serviceAccountName: mgo-operator
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -56,14 +57,6 @@ spec:
                     operator: NotIn
                     values:
                       - monitor
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.6"
       containers:
         - image: mongo
           name: hotel-reserv-reservation-mongo
@@ -76,17 +69,20 @@ spec:
           args:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db
+            - --replSet
+            - rs0
+            - --bind_ip_all
           volumeMounts:
-            #            - mountPath: /data/db
-            #              name: reservation
             - mountPath: /tmp/mongodb
               name: mongodb-conf
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: "MONGO_SIDECAR_POD_LABELS"
+              value: "mongoRepl=reserve"
       hostname: reservation-db
       restartPolicy: Always
       volumes:
-        #        - name: reservation
-        #          persistentVolumeClaim:
-        #            claimName: reservation-pvc
         - name: mongodb-conf
           configMap:
             name: mongodb-reservation

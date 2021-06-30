@@ -37,13 +37,29 @@ func main() {
 	json.Unmarshal(byteValue, &result)
 	servPort, _ := strconv.Atoi(result["ReservePort"])
 	servIp := ""
-	reserveMongoAddr := ""
+	var reserveMongoAddr []string
 	reserveMemcAddr := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		reserveMongoAddr = "mongodb-reserve:" + strings.Split(result["ReserveMongoAddress"], ":")[1]
+		ips, err := net.LookupIP("mongodb-reserve")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(ips) < 1 {
+			log.Fatalf("invalid mongodb addr: %v", ips)
+		}
+
+		addrPortSuffix := ":" + strings.Split(result["ReserveMongoAddress"], ":")[1]
+		reserveMongoAddr = make([]string, 0, len(ips))
+		for _, ip := range ips {
+			reserveMongoAddr = append(
+				reserveMongoAddr,
+				ip.String()+addrPortSuffix,
+			)
+		}
+
 		reserveMemcAddr = "memcached-reserve:" + strings.Split(result["ReserveMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
@@ -57,7 +73,7 @@ func main() {
 		*jaegeraddr = "jaeger:" + strings.Split(result["jaegerAddress"], ":")[1]
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
-		reserveMongoAddr = result["ReserveMongoAddress"]
+		reserveMongoAddr = []string{result["ReserveMongoAddress"]}
 		reserveMemcAddr = result["ReserveMemcAddress"]
 		servIp = result["ReserveIP"]
 		*jaegeraddr = result["jaegerAddress"]
@@ -70,8 +86,9 @@ func main() {
 		result,
 	)
 
-	mongoSession := initializeDatabase(monHelper, reserveMongoAddr)
+	mongoSession := initializeDatabase(monHelper, reserveMongoAddr...)
 	defer mongoSession.Close()
+
 	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
 	mongoSession.SetPoolLimit(poolLimit)
 
