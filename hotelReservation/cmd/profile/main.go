@@ -43,8 +43,10 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		profileMongoAddr = "mongodb-profile:" + strings.Split(result["ProfileMongoAddress"], ":")[1]
-		profileMemcAddr = "memcached-profile:" + strings.Split(result["ProfileMemcAddress"], ":")[1]
+		profileMongoAddr = fmt.Sprintf("mongodb-profile:%d", common.MongoPort)
+		profileMemcAddr = fmt.Sprintf("memcached-profile:%d", common.MemcachedPort)
+		//profileMongoAddr = "mongodb-profile:" + strings.Split(result["ProfileMongoAddress"], ":")[1]
+		//profileMemcAddr = "memcached-profile:" + strings.Split(result["ProfileMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {

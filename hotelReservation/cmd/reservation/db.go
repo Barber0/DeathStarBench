@@ -22,13 +22,10 @@ type Number struct {
 	Number  int    `bson:"numberOfRoom"`
 }
 
-func initializeDatabase(monHelper *common.MonitoringHelper, urls ...string) *mgo.Session {
-	fmt.Printf("reservation db ip addr = %v\n", urls)
+func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Session {
+	fmt.Printf("reservation db ip addr = %v\n", url)
 
-	session, err := mgo.DialWithInfo(&mgo.DialInfo{
-		Addrs:          urls,
-		ReplicaSetName: "rs0",
-	})
+	session, err := mgo.Dial(url)
 	if err != nil {
 		panic(err)
 	}

@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reservation
+  labels:
+    role: server-config
+data:
+  GOGC: "100"
+  GOMAXPROCS: "4"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,7 +52,7 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_proto:0.0.11-mgorepl1
+          image: simonalphafang/hotel_reserve_proto:0.0.11-dbport2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
           ports:
@@ -99,4 +109,15 @@ spec:
                 configMapKeyRef:
                   name: server-config
                   key: InfluxMemcStat
+
+            - name: GOGC
+              valueFrom:
+                configMapKeyRef:
+                  key: GOGC
+                  name: reservation
+            - name: GOMAXPROCS
+              valueFrom:
+                configMapKeyRef:
+                  key: GOMAXPROCS
+                  name: reservation
       restartPolicy: Always

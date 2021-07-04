@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recommendation
+  labels:
+    role: server-config
+data:
+  GOGC: "100"
+  GOMAXPROCS: "4"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,25 +49,10 @@ spec:
                     operator: NotIn
                     values:
                       - monitor
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.3"
-      initContainers:
-        - name: db-prob
-          image: simonalphafang/alpine-telnet:0.0.1
-          command:
-            - sh
-            - -c
-            - "echo \"\" | telnet mongodb-recommendation 27021"
       containers:
         - command:
             - recommendation
-          image: simonalphafang/hotel_reserve_proto:0.0.11-pwdcheck2
+          image: simonalphafang/hotel_reserve_proto:0.0.11-dbport2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-recommendation
           ports:
@@ -114,4 +109,15 @@ spec:
                 configMapKeyRef:
                   name: server-config
                   key: InfluxMemcStat
+
+            - name: GOGC
+              valueFrom:
+                configMapKeyRef:
+                  key: GOGC
+                  name: recommendation
+            - name: GOMAXPROCS
+              valueFrom:
+                configMapKeyRef:
+                  key: GOMAXPROCS
+                  name: recommendation
       restartPolicy: Always

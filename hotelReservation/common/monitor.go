@@ -131,9 +131,12 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 
 		meta, ok := metadata.FromIncomingContext(ctx)
 		if ok {
-			getCtxData(pTag, meta,
+			getCtxData(
+				pTag,
+				meta,
 				LabelSrcService,
-				LabelSrcPod)
+				LabelSrcPod,
+			)
 		}
 
 		metricPoint := influxdb2.NewPoint(

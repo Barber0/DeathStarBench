@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: geo
+  labels:
+    role: server-config
+data:
+  GOGC: "100"
+  GOMAXPROCS: "4"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,25 +49,10 @@ spec:
                     operator: NotIn
                     values:
                       - monitor
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.3"
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      initContainers:
-        - name: db-prob
-          image: simonalphafang/alpine-telnet:0.0.1
-          command:
-            - sh
-            - -c
-            - "echo \"\" | telnet mongodb-geo 27018"
       containers:
         - command:
             - geo
-          image: simonalphafang/hotel_reserve_proto:0.0.11-pwdcheck2
+          image: simonalphafang/hotel_reserve_proto:0.0.11-dbport2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-geo
           ports:
@@ -114,4 +109,15 @@ spec:
                 configMapKeyRef:
                   name: server-config
                   key: InfluxMemcStat
+
+            - name: GOGC
+              valueFrom:
+                configMapKeyRef:
+                  key: GOGC
+                  name: geo
+            - name: GOMAXPROCS
+              valueFrom:
+                configMapKeyRef:
+                  key: GOMAXPROCS
+                  name: geo
       restartPolicy: Always

@@ -40,7 +40,8 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		userMongoAddr = "mongodb-user:" + strings.Split(result["UserMongoAddress"], ":")[1]
+		userMongoAddr = fmt.Sprintf("mongodb-user:%d", common.MongoPort)
+		//userMongoAddr = "mongodb-user:" + strings.Split(result["UserMongoAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {

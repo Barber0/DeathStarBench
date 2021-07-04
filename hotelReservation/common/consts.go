@@ -23,4 +23,7 @@ const (
 	CfgKeySvrTimeout      = "SVR_TIMEOUT"
 	CfgKeySvrMemcIdleConn = "SVR_MEMC_IDLE_CONN"
 	CfgKeySvrMemcTimeout  = "SVR_MEMC_TIMEOUT"
+
+	MongoPort     = 27017
+	MemcachedPort = 11211
 )
