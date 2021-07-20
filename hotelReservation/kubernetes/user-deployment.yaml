@@ -55,7 +55,7 @@ spec:
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_proto:0.0.11-dbport2
+          image: simonalphafang/hotel_reserve_proto:0.0.12-allmetric3
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-user
           ports:

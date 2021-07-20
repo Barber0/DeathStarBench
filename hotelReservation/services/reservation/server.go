@@ -56,7 +56,7 @@ func (s *Server) Run() error {
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_prometheus.UnaryServerInterceptor,
-			s.Monitor.MetricInterceptor(),
+			s.Monitor.GrpcMetricInterceptor,
 			//otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
 	}
@@ -85,7 +85,7 @@ func (s *Server) Run() error {
 
 // Shutdown cleans up any processes
 func (s *Server) Shutdown() {
-	s.Registry.Deregister(name)
+	s.Registry.Deregister()
 	s.Monitor.Close()
 }
 

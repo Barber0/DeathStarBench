@@ -52,7 +52,7 @@ spec:
       containers:
         - command:
             - profile
-          image: simonalphafang/hotel_reserve_proto:0.0.11-dbport3
+          image: simonalphafang/hotel_reserve_proto:0.0.12-allmetric3
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-profile
           ports:

@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -38,6 +39,9 @@ const (
 	DummyTagVal = "true"
 
 	PerfLatency = "latency"
+
+	DummySrcPodWrk = "wrk"
+	DummySrcSvcWrk = DummySrcPodWrk
 )
 
 type MonitoringHelper struct {
@@ -115,10 +119,10 @@ func GetCfgData(key string, config map[string]string) string {
 	return config[key]
 }
 
-func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context2.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func (mh *MonitoringHelper) HttpMetricInterceptor(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
-		resp, err = handler(ctx, req)
+		next.ServeHTTP(w, r)
 		endTime := time.Now()
 
 		handleDurData := endTime.Sub(startTime).Microseconds()
@@ -126,17 +130,9 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		pTag := map[string]string{
 			LabelServiceName: mh.serviceName,
 			LabelPodName:     mh.podName,
-			LabelMethod:      info.FullMethod,
-		}
-
-		meta, ok := metadata.FromIncomingContext(ctx)
-		if ok {
-			getCtxData(
-				pTag,
-				meta,
-				LabelSrcService,
-				LabelSrcPod,
-			)
+			LabelMethod:      r.URL.Path,
+			LabelSrcPod:      DummySrcPodWrk,
+			LabelSrcService:  DummySrcSvcWrk,
 		}
 
 		metricPoint := influxdb2.NewPoint(
@@ -149,8 +145,43 @@ func (mh *MonitoringHelper) MetricInterceptor() grpc.UnaryServerInterceptor {
 		)
 
 		mh.writeAPI.WritePoint(metricPoint)
-		return
 	}
+}
+
+func (mh *MonitoringHelper) GrpcMetricInterceptor(ctx context2.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	startTime := time.Now()
+	resp, err = handler(ctx, req)
+	endTime := time.Now()
+
+	handleDurData := endTime.Sub(startTime).Microseconds()
+
+	pTag := map[string]string{
+		LabelServiceName: mh.serviceName,
+		LabelPodName:     mh.podName,
+		LabelMethod:      info.FullMethod,
+	}
+
+	meta, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		getCtxData(
+			pTag,
+			meta,
+			LabelSrcService,
+			LabelSrcPod,
+		)
+	}
+
+	metricPoint := influxdb2.NewPoint(
+		mh.serviceStat,
+		pTag,
+		map[string]interface{}{
+			PerfLatency: handleDurData,
+		},
+		startTime,
+	)
+
+	mh.writeAPI.WritePoint(metricPoint)
+	return
 }
 
 func (mh *MonitoringHelper) Close() {

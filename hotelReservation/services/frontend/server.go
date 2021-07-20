@@ -60,10 +60,10 @@ func (s *Server) Run() error {
 	mux := http.NewServeMux()
 	//mux := tracing.NewServeMux(s.Tracer)
 	mux.Handle("/", http.FileServer(http.Dir("services/frontend/static")))
-	mux.Handle("/hotels", http.HandlerFunc(s.searchHandler))
-	mux.Handle("/recommendations", http.HandlerFunc(s.recommendHandler))
-	mux.Handle("/user", http.HandlerFunc(s.userHandler))
-	mux.Handle("/reservation", http.HandlerFunc(s.reservationHandler))
+	mux.HandleFunc("/hotels", s.Monitor.HttpMetricInterceptor(s.searchHandler))
+	mux.HandleFunc("/recommendations", s.Monitor.HttpMetricInterceptor(s.recommendHandler))
+	mux.HandleFunc("/user", s.Monitor.HttpMetricInterceptor(s.userHandler))
+	mux.HandleFunc("/reservation", s.Monitor.HttpMetricInterceptor(s.reservationHandler))
 
 	// fmt.Printf("frontend starts serving\n")
 
