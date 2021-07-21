@@ -23,7 +23,8 @@ type Number struct {
 }
 
 func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Session {
-	fmt.Printf("reservation db ip addr = %s\n", url)
+	fmt.Printf("reservation db ip addr = %v\n", url)
+
 	session, err := mgo.Dial(url)
 	if err != nil {
 		panic(err)

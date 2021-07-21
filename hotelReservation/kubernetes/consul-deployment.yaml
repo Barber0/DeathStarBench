@@ -32,10 +32,14 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: disktype
+                  - key: host_type
                     operator: In
                     values:
-                      - premium
+                      - monitor
+      #                  - key: disktype
+      #                    operator: In
+      #                    values:
+      #                      - premium
       containers:
         - image: consul:latest
           name: consul
@@ -47,6 +51,6 @@ spec:
               protocol: UDP
           resources:
             limits:
-              cpu: 300m
-              memory: 1.2G
+              cpu: 200m
+              memory: 600M
       restartPolicy: Always

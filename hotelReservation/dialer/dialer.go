@@ -97,3 +97,35 @@ func Dial2(name string, monHelper *common.MonitoringHelper, tracer opentracing.T
 
 	return conn, nil
 }
+
+func Dial3(name string, monHelper *common.MonitoringHelper, opts ...DialOption) (*grpc.ClientConn, error) {
+	dialopts := []grpc.DialOption{
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Timeout:             120 * time.Second,
+			PermitWithoutStream: true,
+		}),
+		grpc.WithChainUnaryInterceptor(
+			monHelper.SenderMetricInterceptor(),
+		),
+	}
+	if tlsopt := tls.GetDialOpt(); tlsopt != nil {
+		dialopts = append(dialopts, tlsopt)
+	} else {
+		dialopts = append(dialopts, grpc.WithInsecure())
+	}
+
+	for _, fn := range opts {
+		opt, err := fn(name)
+		if err != nil {
+			return nil, fmt.Errorf("config error: %v", err)
+		}
+		dialopts = append(dialopts, opt)
+	}
+
+	conn, err := grpc.Dial(name, dialopts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial %s: %v", name, err)
+	}
+
+	return conn, nil
+}

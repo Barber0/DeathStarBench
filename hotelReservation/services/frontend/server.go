@@ -11,11 +11,8 @@ import (
 	reservation "hotel_reserve/services/reservation/proto"
 	search "hotel_reserve/services/search/proto"
 	user "hotel_reserve/services/user/proto"
-	"hotel_reserve/tracing"
 	"net/http"
 	"strconv"
-
-	"github.com/opentracing/opentracing-go"
 )
 
 // Server implements frontend service
@@ -27,9 +24,9 @@ type Server struct {
 	reservationClient    reservation.ReservationClient
 	IpAddr               string
 	Port                 int
-	Tracer               opentracing.Tracer
-	Registry             *registry.Client
-	Monitor              *common.MonitoringHelper
+	//Tracer               opentracing.Tracer
+	Registry *registry.Client
+	Monitor  *common.MonitoringHelper
 }
 
 // Run the server
@@ -60,12 +57,13 @@ func (s *Server) Run() error {
 
 	// fmt.Printf("frontend before mux\n")
 
-	mux := tracing.NewServeMux(s.Tracer)
+	mux := http.NewServeMux()
+	//mux := tracing.NewServeMux(s.Tracer)
 	mux.Handle("/", http.FileServer(http.Dir("services/frontend/static")))
-	mux.Handle("/hotels", http.HandlerFunc(s.searchHandler))
-	mux.Handle("/recommendations", http.HandlerFunc(s.recommendHandler))
-	mux.Handle("/user", http.HandlerFunc(s.userHandler))
-	mux.Handle("/reservation", http.HandlerFunc(s.reservationHandler))
+	mux.HandleFunc("/hotels", s.Monitor.HttpMetricInterceptor(s.searchHandler))
+	mux.HandleFunc("/recommendations", s.Monitor.HttpMetricInterceptor(s.recommendHandler))
+	mux.HandleFunc("/user", s.Monitor.HttpMetricInterceptor(s.userHandler))
+	mux.HandleFunc("/reservation", s.Monitor.HttpMetricInterceptor(s.reservationHandler))
 
 	// fmt.Printf("frontend starts serving\n")
 
@@ -73,10 +71,9 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) initSearchClient(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -87,10 +84,9 @@ func (s *Server) initSearchClient(name string) error {
 }
 
 func (s *Server) initProfileClient(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -101,10 +97,9 @@ func (s *Server) initProfileClient(name string) error {
 }
 
 func (s *Server) initRecommendationClient(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -115,10 +110,9 @@ func (s *Server) initRecommendationClient(name string) error {
 }
 
 func (s *Server) initUserClient(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -129,10 +123,9 @@ func (s *Server) initUserClient(name string) error {
 }
 
 func (s *Server) initReservation(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {

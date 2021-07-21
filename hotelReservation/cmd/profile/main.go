@@ -8,7 +8,6 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/profile"
-	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
@@ -44,8 +43,10 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		profileMongoAddr = "mongodb-profile:" + strings.Split(result["ProfileMongoAddress"], ":")[1]
-		profileMemcAddr = "memcached-profile:" + strings.Split(result["ProfileMemcAddress"], ":")[1]
+		profileMongoAddr = fmt.Sprintf("mongodb-profile:%d", common.MongoPort)
+		profileMemcAddr = fmt.Sprintf("memcached-profile:%d", common.MemcachedPort)
+		//profileMongoAddr = "mongodb-profile:" + strings.Split(result["ProfileMongoAddress"], ":")[1]
+		//profileMemcAddr = "memcached-profile:" + strings.Split(result["ProfileMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
@@ -87,10 +88,10 @@ func main() {
 
 	fmt.Printf("profile ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(common.ServiceProfile, *jaegeraddr)
-	if err != nil {
-		panic(err)
-	}
+	//tracer, err := tracing.Init(common.ServiceProfile, *jaegeraddr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
@@ -103,7 +104,7 @@ func main() {
 	}()
 
 	srv := profile.Server{
-		Tracer: tracer,
+		//Tracer: tracer,
 		// Port:     *port,
 		Registry:     registryCli,
 		Port:         servPort,
@@ -116,7 +117,9 @@ func main() {
 	sigC := make(chan os.Signal)
 	signal.Notify(sigC, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
 
-	go log.Println(srv.Run())
+	go func() {
+		log.Println(srv.Run())
+	}()
 
 	sig := <-sigC
 	log.Printf("receive signal: %v\n", sig)

@@ -2,6 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mongodb-geo
+  labels:
+    role: db-config
 data:
   mongo.conf: |
     systemLog:
@@ -26,6 +28,7 @@ metadata:
   labels:
     app: mongodb-geo
     io.kompose.service: mongodb-geo
+    role: db
   name: mongodb-geo
 spec:
   replicas: 1
@@ -52,10 +55,14 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: disktype
+                  - key: host_type
                     operator: NotIn
                     values:
-                      - premium
+                      - monitor
+      #                  - key: disktype
+      #                    operator: NotIn
+      #                    values:
+      #                      - premium
       #                  - key: cpufreq
       #                    operator: In
       #                    values:
@@ -67,8 +74,8 @@ spec:
             - containerPort: 27017
           resources:
             limits:
-              cpu: 300m
-              memory: 1.2G
+              cpu: 200m
+              memory: 250M
           args:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db

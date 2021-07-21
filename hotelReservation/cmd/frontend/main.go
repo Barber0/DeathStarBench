@@ -7,7 +7,6 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/frontend"
-	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
@@ -53,10 +52,10 @@ func main() {
 
 	fmt.Printf("frontend ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init("frontend", *jaegeraddr)
-	if err != nil {
-		panic(err)
-	}
+	//tracer, err := tracing.Init("frontend", *jaegeraddr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	registry, err := registry.NewClient(*consuladdr)
 	if err != nil {
@@ -65,10 +64,10 @@ func main() {
 
 	srv := &frontend.Server{
 		Registry: registry,
-		Tracer:   tracer,
-		IpAddr:   servIp,
-		Port:     servPort,
-		Monitor:  common.NewMonitoringHelper(common.ServiceFrontend, result),
+		//Tracer:   tracer,
+		IpAddr:  servIp,
+		Port:    servPort,
+		Monitor: common.NewMonitoringHelper(common.ServiceFrontend, result),
 	}
 	log.Fatal(srv.Run())
 }

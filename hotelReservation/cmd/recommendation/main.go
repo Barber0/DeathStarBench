@@ -8,7 +8,6 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/recommendation"
-	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
@@ -40,7 +39,8 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		recommendationMongoAddr = "mongodb-recommendation:" + strings.Split(result["RecommendMongoAddress"], ":")[1]
+		recommendationMongoAddr = fmt.Sprintf("mongodb-recommendation:%d", common.MongoPort)
+		//recommendationMongoAddr = "mongodb-recommendation:" + strings.Split(result["RecommendMongoAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
@@ -73,10 +73,10 @@ func main() {
 
 	fmt.Printf("recommendation ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(common.ServiceReco, *jaegeraddr)
-	if err != nil {
-		panic(err)
-	}
+	//tracer, err := tracing.Init(common.ServiceReco, *jaegeraddr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
@@ -89,7 +89,7 @@ func main() {
 	}()
 
 	srv := &recommendation.Server{
-		Tracer:       tracer,
+		//Tracer:       tracer,
 		Registry:     registryCli,
 		Port:         servPort,
 		IpAddr:       servIp,
@@ -100,7 +100,9 @@ func main() {
 	sigC := make(chan os.Signal)
 	signal.Notify(sigC, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
 
-	go log.Println(srv.Run())
+	go func() {
+		log.Println(srv.Run())
+	}()
 
 	sig := <-sigC
 	log.Printf("receive signal: %v\n", sig)

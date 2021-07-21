@@ -11,8 +11,8 @@ metadata:
   name: memcached-reserve
 spec:
   ports:
-    - name: "11214"
-      port: 11214
+    - name: "11211"
+      port: 11211
       targetPort: 11211
   selector:
     io.kompose.service: memcached-reserve

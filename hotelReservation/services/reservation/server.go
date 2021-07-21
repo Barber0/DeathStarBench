@@ -5,8 +5,6 @@ import (
 	"fmt"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/opentracing/opentracing-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -32,7 +30,7 @@ const name = common.ServiceResv
 
 // Server implements the user service
 type Server struct {
-	Tracer       opentracing.Tracer
+	//Tracer       opentracing.Tracer
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
@@ -58,8 +56,8 @@ func (s *Server) Run() error {
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_prometheus.UnaryServerInterceptor,
-			s.Monitor.MetricInterceptor(),
-			otgrpc.OpenTracingServerInterceptor(s.Tracer),
+			s.Monitor.GrpcMetricInterceptor,
+			//otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
 	}
 
@@ -87,7 +85,7 @@ func (s *Server) Run() error {
 
 // Shutdown cleans up any processes
 func (s *Server) Shutdown() {
-	s.Registry.Deregister(name)
+	s.Registry.Deregister()
 	s.Monitor.Close()
 }
 

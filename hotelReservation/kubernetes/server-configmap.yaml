@@ -3,12 +3,12 @@ kind: ConfigMap
 metadata:
   name: server-config
 data:
-  InfluxToken: "9EFT87EojB8i3kB6QaO0Dvj-nG4iIn83oaTVHGJ-dA6I9AIKz5Q7Vgrb23PRKFULxI5kQQptHMU-XywbxT4h_A=="
-#  InfluxToken: "EFfL4Bzeq0ULqJwrz4Xk0_5ytSbkLM2KybArizfw7yjaTh-2EE_v6OLw9PJCG9y5Kc_R5psWbZMeUBIFJSkOLA=="
+  InfluxToken: "c5g8btEued1bPgqJHQVowB6mHKwAKyIB-8YWLklWLdblCnGMMEoQVO7m2Uzm12ppH4wTySBmY8-FVi82wmQZKg=="
+#  InfluxToken: "TBKmIVqKLDEaaFuuxotWrUgoy7Z7s0tQAU2kJr7Ht-b_OC-Hg3mJkSKeVegA8YWyjBowHGSpWMnElJ6ZuuiwhA=="
   InfluxOrg: "autosys"
   InfluxBucket: "ingestion"
-  InfluxBatchSize: "100"
-  InfluxFlushInterval: "60"
+  InfluxBatchSize: "2000"
+  InfluxFlushInterval: "60000"
   InfluxServiceStat: "service_metric"
   InfluxMgoStat: "mgo_metric"
   InfluxMemcStat: "memc_metric"

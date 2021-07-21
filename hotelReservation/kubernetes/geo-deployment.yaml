@@ -1,10 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: svr-geo
+  name: geo
+  labels:
+    role: server-config
 data:
-  dbconn: "120"
-  timeout: "120"
+  GOGC: "100"
+  GOMAXPROCS: "4"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -16,6 +18,7 @@ metadata:
   labels:
     app: geo
     io.kompose.service: geo
+    role: server
   name: geo
 spec:
   replicas: 1
@@ -37,30 +40,19 @@ spec:
         io.kompose.service: geo
         role: server
     spec:
-      #      affinity:
-      #        nodeAffinity:
-      #          requiredDuringSchedulingIgnoredDuringExecution:
-      #            nodeSelectorTerms:
-      #              - matchExpressions:
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.3"
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      initContainers:
-        - name: db-prob
-          image: simonalphafang/alpine-telnet:0.0.1
-          command:
-            - sh
-            - -c
-            - "echo \"\" | telnet mongodb-geo 27018"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: host_type
+                    operator: NotIn
+                    values:
+                      - monitor
       containers:
         - command:
             - geo
-          image: simonalphafang/hotel_reserve_proto:0.0.10
+          image: simonalphafang/hotel_reserve_proto:0.0.12-allmetric3
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-geo
           ports:
@@ -68,8 +60,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 300m
-              memory: 1.2G
+              cpu: 150m
+              memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
@@ -117,14 +109,15 @@ spec:
                 configMapKeyRef:
                   name: server-config
                   key: InfluxMemcStat
-            - name: SVR_TIMEOUT
+
+            - name: GOGC
               valueFrom:
                 configMapKeyRef:
-                  name: svr-geo
-                  key: timeout
-            - name: SVR_DBCONN
+                  key: GOGC
+                  name: geo
+            - name: GOMAXPROCS
               valueFrom:
                 configMapKeyRef:
-                  name: svr-geo
-                  key: dbconn
+                  key: GOMAXPROCS
+                  name: geo
       restartPolicy: Always

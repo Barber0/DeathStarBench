@@ -11,8 +11,8 @@ metadata:
   name: memcached-profile
 spec:
   ports:
-    - name: "11213"
-      port: 11213
+    - name: "11211"
+      port: 11211
       targetPort: 11211
   selector:
     io.kompose.service: memcached-profile

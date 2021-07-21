@@ -8,7 +8,6 @@ import (
 	"hotel_reserve/common"
 	"hotel_reserve/registry"
 	"hotel_reserve/services/geo"
-	"hotel_reserve/tracing"
 	"io/ioutil"
 	"log"
 	"net"
@@ -40,7 +39,8 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		geoMongoAddr = "mongodb-geo:" + strings.Split(result["GeoMongoAddress"], ":")[1]
+		geoMongoAddr = fmt.Sprintf("mongodb-geo:%d", common.MongoPort)
+		//geoMongoAddr = "mongodb-geo:" + strings.Split(result["GeoMongoAddress"], ":")[1]
 		address, _ := net.InterfaceAddrs()
 		for _, a := range address {
 			if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
@@ -72,10 +72,10 @@ func main() {
 
 	fmt.Printf("geo ip = %s, port = %d\n", servIp, servPort)
 
-	tracer, err := tracing.Init(common.ServiceGeo, *jaegeraddr)
-	if err != nil {
-		panic(err)
-	}
+	//tracer, err := tracing.Init(common.ServiceGeo, *jaegeraddr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	registryCli, err := registry.NewClient(*consuladdr)
 	if err != nil {
@@ -88,9 +88,9 @@ func main() {
 	}()
 
 	srv := &geo.Server{
-		Port:         servPort,
-		IpAddr:       servIp,
-		Tracer:       tracer,
+		Port:   servPort,
+		IpAddr: servIp,
+		//Tracer:       tracer,
 		Registry:     registryCli,
 		MongoSession: mongoSession,
 		Monitor:      monHelper,
@@ -99,7 +99,9 @@ func main() {
 	sigC := make(chan os.Signal)
 	signal.Notify(sigC, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
 
-	go log.Println(srv.Run())
+	go func() {
+		log.Println(srv.Run())
+	}()
 
 	sig := <-sigC
 	log.Printf("receive signal: %v\n", sig)

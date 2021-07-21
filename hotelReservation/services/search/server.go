@@ -19,8 +19,6 @@ import (
 	// "os"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	opentracing "github.com/opentracing/opentracing-go"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -35,7 +33,7 @@ type Server struct {
 	geoClient  geo.GeoClient
 	rateClient rate.RateClient
 
-	Tracer   opentracing.Tracer
+	//Tracer   opentracing.Tracer
 	Port     int
 	IpAddr   string
 	Registry *registry.Client
@@ -59,8 +57,8 @@ func (s *Server) Run() error {
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_prometheus.UnaryServerInterceptor,
-			s.Monitor.MetricInterceptor(),
-			otgrpc.OpenTracingServerInterceptor(s.Tracer),
+			s.Monitor.GrpcMetricInterceptor,
+			//otgrpc.OpenTracingServerInterceptor(s.Tracer),
 		)),
 	}
 
@@ -96,15 +94,14 @@ func (s *Server) Run() error {
 
 // Shutdown cleans up any processes
 func (s *Server) Shutdown() {
-	s.Registry.Deregister(name)
+	s.Registry.Deregister()
 	s.Monitor.Close()
 }
 
 func (s *Server) initGeoClient(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
@@ -115,10 +112,9 @@ func (s *Server) initGeoClient(name string) error {
 }
 
 func (s *Server) initRateClient(name string) error {
-	conn, err := dialer.Dial2(
+	conn, err := dialer.Dial3(
 		name,
 		s.Monitor,
-		s.Tracer,
 		dialer.WithBalancer(s.Registry.Client),
 	)
 	if err != nil {
