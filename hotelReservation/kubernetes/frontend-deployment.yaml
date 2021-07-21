@@ -61,7 +61,7 @@ spec:
           resources:
             limits:
               cpu: 200m
-              memory: 600M
+              memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
               value: "off"
