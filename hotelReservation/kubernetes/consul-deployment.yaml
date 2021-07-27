@@ -33,7 +33,7 @@ spec:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: host_type
-                    operator: In
+                    operator: NotIn
                     values:
                       - monitor
       #                  - key: disktype
@@ -52,5 +52,5 @@ spec:
           resources:
             limits:
               cpu: 200m
-              memory: 600M
+              memory: 200M
       restartPolicy: Always

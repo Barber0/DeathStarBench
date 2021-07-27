@@ -21,7 +21,7 @@ metadata:
     role: server
   name: reservation
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: reservation
@@ -52,7 +52,7 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_proto:0.0.12-allmetric3
+          image: simonalphafang/hotel_reserve_proto:0.0.12-epoch2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
           ports:

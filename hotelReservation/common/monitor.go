@@ -2,14 +2,18 @@ package common
 
 import (
 	context2 "context"
+	"errors"
+	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +31,8 @@ const (
 	LabelFailed      = "failed"
 	LabelDbOpType    = "op"
 	LabelDbStage     = "stage"
+	LabelCrashed     = "crash"
+	LabelEpoch       = "epoch"
 
 	DbStageLoad = "load"
 	DbStageRun  = "run"
@@ -42,6 +48,8 @@ const (
 
 	DummySrcPodWrk = "wrk"
 	DummySrcSvcWrk = DummySrcPodWrk
+
+	ReqHeaderEpoch = "epoch"
 )
 
 type MonitoringHelper struct {
@@ -55,6 +63,7 @@ type MonitoringHelper struct {
 	serviceStat  string
 	mgoStat      string
 	memcStat     string
+	benchEpoch   string
 }
 
 type (
@@ -101,7 +110,7 @@ func NewMonitoringHelper(serviceName string, config map[string]string) *Monitori
 	return helper
 }
 
-func getCtxData(m map[string]string, md metadata.MD, keys ...string) {
+func (mh *MonitoringHelper) getCtxData(m map[string]string, md metadata.MD, keys ...string) {
 	for _, key := range keys {
 		if dataArr := md.Get(key); len(dataArr) > 0 {
 			m[key] = dataArr[0]
@@ -119,10 +128,26 @@ func GetCfgData(key string, config map[string]string) string {
 	return config[key]
 }
 
+func (mh *MonitoringHelper) executeHttpHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) (failed bool) {
+	defer func() {
+		if pa := recover(); pa != nil {
+			errInfo := fmt.Sprintf("[ERR] http metric interceptor panic: %v\n", pa)
+			http.Error(w, errInfo, http.StatusInternalServerError)
+			log.Println(errInfo)
+			fmt.Println(string(debug.Stack()))
+			failed = true
+		}
+	}()
+	next.ServeHTTP(w, r)
+	return
+}
+
 func (mh *MonitoringHelper) HttpMetricInterceptor(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		mh.benchEpoch = r.Header.Get(ReqHeaderEpoch)
+
 		startTime := time.Now()
-		next.ServeHTTP(w, r)
+		reqFailed := mh.executeHttpHandler(w, r, next)
 		endTime := time.Now()
 
 		handleDurData := endTime.Sub(startTime).Microseconds()
@@ -133,6 +158,11 @@ func (mh *MonitoringHelper) HttpMetricInterceptor(next http.HandlerFunc) http.Ha
 			LabelMethod:      r.URL.Path,
 			LabelSrcPod:      DummySrcPodWrk,
 			LabelSrcService:  DummySrcSvcWrk,
+			LabelEpoch:       mh.benchEpoch,
+		}
+
+		if reqFailed {
+			pTag[LabelFailed] = DummyTagVal
 		}
 
 		metricPoint := influxdb2.NewPoint(
@@ -148,9 +178,28 @@ func (mh *MonitoringHelper) HttpMetricInterceptor(next http.HandlerFunc) http.Ha
 	}
 }
 
+func (mh *MonitoringHelper) executeHandler(ctx context2.Context, req interface{}, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	defer func() {
+		if pa := recover(); pa != nil {
+			resp = nil
+
+			switch pa.(type) {
+			case string:
+				err = errors.New(pa.(string))
+			case error:
+				err = pa.(error)
+			default:
+				err = fmt.Errorf("%v", pa)
+			}
+		}
+	}()
+	resp, err = handler(ctx, req)
+	return
+}
+
 func (mh *MonitoringHelper) GrpcMetricInterceptor(ctx context2.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	startTime := time.Now()
-	resp, err = handler(ctx, req)
+	resp, err = mh.executeHandler(ctx, req, handler)
 	endTime := time.Now()
 
 	handleDurData := endTime.Sub(startTime).Microseconds()
@@ -161,14 +210,22 @@ func (mh *MonitoringHelper) GrpcMetricInterceptor(ctx context2.Context, req inte
 		LabelMethod:      info.FullMethod,
 	}
 
+	if err != nil {
+		pTag[LabelFailed] = DummyTagVal
+	}
+
 	meta, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		getCtxData(
+		mh.getCtxData(
 			pTag,
 			meta,
 			LabelSrcService,
 			LabelSrcPod,
+			LabelEpoch,
 		)
+		if epochVal, ok := pTag[LabelEpoch]; ok {
+			mh.benchEpoch = epochVal
+		}
 	}
 
 	metricPoint := influxdb2.NewPoint(
@@ -194,6 +251,7 @@ func (mh *MonitoringHelper) SenderMetricInterceptor() grpc.UnaryClientIntercepto
 		outCtx := metadata.NewOutgoingContext(ctx, metadata.MD{
 			LabelSrcService: {mh.serviceName},
 			LabelSrcPod:     {mh.podName},
+			LabelEpoch:      {mh.benchEpoch},
 		})
 		return invoker(outCtx, method, req, reply, cc, opts...)
 	}
@@ -205,6 +263,7 @@ func (mh *MonitoringHelper) submitStoreOpStat(startTime, endTime time.Time, tabl
 		LabelSrcPod:     mh.podName,
 		LabelDbOpType:   opType,
 		LabelDbStage:    stage,
+		LabelEpoch:      mh.benchEpoch,
 	}
 
 	pData := map[string]interface{}{

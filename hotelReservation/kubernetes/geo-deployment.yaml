@@ -52,7 +52,7 @@ spec:
       containers:
         - command:
             - geo
-          image: simonalphafang/hotel_reserve_proto:0.0.12-allmetric3
+          image: simonalphafang/hotel_reserve_proto:0.0.12-epoch2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-geo
           ports:
