@@ -20,6 +20,11 @@ import (
 )
 
 func main() {
+	paramAgent, err := common.NewParamAgent(common.ServiceGeo)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("param agent ip rank: ", paramAgent.IpRank)
 
 	jsonFile, err := os.Open("config.json")
 	if err != nil {

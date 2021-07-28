@@ -66,7 +66,7 @@ func (s *Server) Run() error {
 	mux.HandleFunc("/reservation", s.Monitor.HttpMetricInterceptor(s.reservationHandler))
 
 	// fmt.Printf("frontend starts serving\n")
-
+	
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.Port), mux)
 }
 

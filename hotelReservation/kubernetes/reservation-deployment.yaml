@@ -21,7 +21,7 @@ metadata:
     role: server
   name: reservation
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: reservation
@@ -40,6 +40,7 @@ spec:
         io.kompose.service: reservation
         role: server
     spec:
+      serviceAccountName: benchop
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -52,9 +53,11 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_proto:0.0.12-epoch2
+          image: simonalphafang/hotel_reserve_proto:0.0.12-pagent4
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
+          securityContext:
+            privileged: true
           ports:
             - containerPort: 8087
             - containerPort: 2112
@@ -69,6 +72,15 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
             - name: InfluxToken
               valueFrom:
                 configMapKeyRef:

@@ -40,6 +40,7 @@ spec:
         io.kompose.service: recommendation
         role: server
     spec:
+      serviceAccountName: benchop
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -52,9 +53,11 @@ spec:
       containers:
         - command:
             - recommendation
-          image: simonalphafang/hotel_reserve_proto:0.0.12-epoch2
+          image: simonalphafang/hotel_reserve_proto:0.0.12-pagent4
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-recommendation
+          securityContext:
+            privileged: true
           ports:
             - containerPort: 8085
             - containerPort: 2112
@@ -69,6 +72,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
             - name: InfluxToken
               valueFrom:
                 configMapKeyRef:

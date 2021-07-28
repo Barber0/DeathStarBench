@@ -26,4 +26,19 @@ const (
 
 	MongoPort     = 27017
 	MemcachedPort = 11211
+
+	EnvMyPodName = "MY_POD_NAME"
+	EnvMyPodIp   = "MY_POD_IP"
+	EnvMyPodNs   = "MY_POD_NS"
+
+	EnvParamCenterAddr = "ParamCenterAddr"
+	EnvParamCenterPort = "ParamCenterPort"
+
+	PCenterPathAcquireParam = "/params"
+
+	ParamTypeKernel = "k"
+	ParamTypeConfig = "c"
+
+	ParamEnvTplKernel = "KERNEL_%s_%d"
+	ParamEnvTplConfig = "CONFIG_%s_%d"
 )

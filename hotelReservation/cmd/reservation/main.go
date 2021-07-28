@@ -24,6 +24,12 @@ import (
 )
 
 func main() {
+	paramAgent, err := common.NewParamAgent(common.ServiceResv)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("init param agent, ip rank: %d\n", paramAgent.IpRank)
+
 	jsonFile, err := os.Open("config.json")
 	if err != nil {
 		fmt.Println(err)

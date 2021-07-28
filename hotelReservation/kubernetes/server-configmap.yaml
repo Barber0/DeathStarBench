@@ -18,3 +18,5 @@ data:
   InfluxServiceStat: "service_metric"
   InfluxMgoStat: "mgo_metric"
   InfluxMemcStat: "memc_metric"
+  ParamCenterAddr: "pcenter"
+  ParamCenterPort: "5000"
