@@ -4,16 +4,18 @@
 #include <string>
 #include <chrono>
 #include <cpp_redis/cpp_redis>
+#include <nlohmann/json.hpp>
 
 #include "logger.h"
 #include "GenericClient.h"
 
 namespace social_network {
+using json = nlohmann::json;
 
 class RedisClient : public GenericClient {
  public:
   RedisClient(const std::string &addr, int port);
-  RedisClient(const std::string &addr, int port, int keepalive_ms);
+  RedisClient(const std::string &addr, int port, int keepalive_ms, const json &config_json);
   RedisClient(const RedisClient &) = delete;
   RedisClient & operator=(const RedisClient &) = delete;
   RedisClient(RedisClient &&) = default;
@@ -37,7 +39,7 @@ RedisClient::RedisClient(const std::string &addr, int port) {
   _client = new cpp_redis::client();
 }
 
-RedisClient::RedisClient(const std::string &addr, int port, int keepalive_ms) {
+RedisClient::RedisClient(const std::string &addr, int port, int keepalive_ms, const json &config_json) {
   _addr = addr;
   _port = port;
   _keepalive_ms = keepalive_ms;

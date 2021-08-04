@@ -1,13 +1,11 @@
 FROM yg397/thrift-microservice-deps:xenial
 
-ARG NUM_CPUS=8
-
 COPY ./ /social-network-microservices
 RUN cd /social-network-microservices \
     && mkdir -p build \
     && cd build \
     && cmake -DCMAKE_BUILD_TYPE=Debug .. \
-    && make -j${NUM_CPUS} \
+    && make -j4 \
     && make install
 
 WORKDIR /social-network-microservices

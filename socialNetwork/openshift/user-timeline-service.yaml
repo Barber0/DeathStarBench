@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: user-timeline-service
-        image: yg397/social-network-microservices
+        image: simonalphafang/social_network:0.0.1
         command: ["UserTimelineService"]
         volumeMounts:
           - mountPath: /social-network-microservices/config/jaeger-config.yml
