@@ -102,8 +102,8 @@ class Bench:
             qos = uid_to_qos[uid]
             stat[name, 'cpuacct.usage'] = int(stat_path(qos, uid, 'cpuacct.usage').read_text())
         stats.append((t, stat))
-        wrk = pathlib.Path('/home/zibwa/DeathStarBench/socialNetwork/wrk2')
-        p = subprocess.run([wrk/'wrk', '-D', 'exp', '-t', '4', '-c', '10', '-d', str(duration), '-L', '-s', wrk/'scripts/social-network/compose-post.lua', 'http://localhost:30001/wrk2-api/post/compose', '-R', str(rate)],
+        wrk = pathlib.Path('/home/zilinfang/code/DeathStarBench/socialNetwork/wrk2')
+        p = subprocess.run([wrk/'wrk', '-D', 'exp', '-t', '4', '-c', '10', '-d', str(duration), '-L', '-s', wrk/'scripts/social-network/compose-post.lua', 'http://10.104.244.50:8080/wrk2-api/post/compose', '-R', str(rate)],
             stdin=DEVNULL, stdout=PIPE, check=True)
         t = time.time()
         stat = {}

@@ -1,39 +1,44 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+namespace: social-network
+
+commonLabels:
+  death-star-project: social-network
+
 resources:
-  - "compose-post-redis.yaml"
-  - "media-mongodb.yaml"
-  - "social-graph-redis.yaml"
-  - "url-shorten-mongodb.yaml"
-  - "user-timeline-redis.yaml"
-  - "compose-post-service.yaml"
-  - "media-service.yaml"
-  - "social-graph-service.yaml"
-  - "url-shorten-service.yaml"
-  - "user-timeline-service.yaml"
-  - "home-timeline-redis.yaml"
-  - "nginx-thrift.yaml"
-  - "social-network-ns.yaml"
-  - "user-memcached.yaml"
-  - "write-home-timeline-rabbitmq.yaml"
-  - "home-timeline-service.yaml"
-  - "post-storage-memcached.yaml"
-  - "text-service.yaml"
-  - "user-mention-service.yaml"
-  - "write-home-timeline-service.yaml"
-  - "jaeger.yaml"
-  - "post-storage-mongodb.yaml"
-  - "ubuntu-client.yaml"
-  - "user-mongodb.yaml"
-  - "media-frontend.yaml"
-  - "post-storage-service.yaml"
-  - "unique-id-service.yaml"
-  - "user-service.yaml"
-  - "media-memcached.yaml"
-  - "social-graph-mongodb.yaml"
-  - "url-shorten-memcached.yaml"
-  - "user-timeline-mongodb.yaml"
+  - "base/compose-post-redis.yaml"
+  - "base/media-mongodb.yaml"
+  - "base/social-graph-redis.yaml"
+  - "base/url-shorten-mongodb.yaml"
+  - "base/user-timeline-redis.yaml"
+  - "base/compose-post-service.yaml"
+  - "base/media-service.yaml"
+  - "base/social-graph-service.yaml"
+  - "base/url-shorten-service.yaml"
+  - "base/user-timeline-service.yaml"
+  - "base/home-timeline-redis.yaml"
+  - "base/nginx-thrift.yaml"
+  - "base/social-network-ns.yaml"
+  - "base/user-memcached.yaml"
+  - "base/write-home-timeline-rabbitmq.yaml"
+  - "base/home-timeline-service.yaml"
+  - "base/post-storage-memcached.yaml"
+  - "base/text-service.yaml"
+  - "base/user-mention-service.yaml"
+  - "base/write-home-timeline-service.yaml"
+  - "base/jaeger.yaml"
+  - "base/post-storage-mongodb.yaml"
+  - "base/ubuntu-client.yaml"
+  - "base/user-mongodb.yaml"
+  - "base/media-frontend.yaml"
+  - "base/post-storage-service.yaml"
+  - "base/unique-id-service.yaml"
+  - "base/user-service.yaml"
+  - "base/media-memcached.yaml"
+  - "base/social-graph-mongodb.yaml"
+  - "base/url-shorten-memcached.yaml"
+  - "base/user-timeline-mongodb.yaml"
 
 configMapGenerator:
   - name: "jaeger-config-yaml"
@@ -47,4 +52,23 @@ configMapGenerator:
       - "media-frontend-config/nginx.conf"
   - name: "media-frontend-lua"
     files:
-      - ""
+      - "media-frontend-config/lua-scripts"
+
+  - name: "nginx-thrift-genlua"
+    files:
+      - "nginx-thrift-config/gen-lua"
+  - name: "nginx-thrift-pages"
+    files:
+      - "nginx-thrift-config/pages"
+
+# $CTL create cm nginx-thrift-pages-style --from-file=nginx-thrift-config/pages/style -n ${NS}
+# $CTL create cm nginx-thrift-pages-javascript  --from-file=nginx-thrift-config/pages/javascript -n ${NS}
+# $CTL create cm nginx-thrift-luascripts --from-file=nginx-thrift-config/lua-scripts -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-api-home-timeline --from-file=nginx-thrift-config/lua-scripts/api/home-timeline -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-api-post --from-file=nginx-thrift-config/lua-scripts/api/post -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-api-user --from-file=nginx-thrift-config/lua-scripts/api/user -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-api-user-timeline --from-file=nginx-thrift-config/lua-scripts/api/user-timeline -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-wrk2-api-home-timeline --from-file=nginx-thrift-config/lua-scripts/wrk2-api/home-timeline -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-wrk2-api-post --from-file=nginx-thrift-config/lua-scripts/wrk2-api/post -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-wrk2-api-user --from-file=nginx-thrift-config/lua-scripts/wrk2-api/user -n ${NS}
+# $CTL create cm nginx-thrift-luascripts-wrk2-api-user-timeline --from-file=nginx-thrift-config/lua-scripts/wrk2-api/user-timeline -n ${NS}

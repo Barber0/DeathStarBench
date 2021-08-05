@@ -4,9 +4,7 @@ kind: Service
 metadata:
   name: compose-post-redis
   labels:
-    death-star-project: social-network
     app: compose-post-redis
-  namespace: social-network
 spec:
   ports:
   - port: 6379
