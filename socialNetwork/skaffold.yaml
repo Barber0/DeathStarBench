@@ -1,0 +1,43 @@
+apiVersion: skaffold/v2beta21
+kind: Config
+metadata:
+  name: socialnetwork
+build:
+  artifacts:
+  - image: simonalphafang/social_network
+    docker:
+      dockerfile: Dockerfile
+deploy:
+  kubectl:
+    manifests:
+    - openshift/compose-post-redis.yaml
+    - openshift/compose-post-service.yaml
+    - openshift/home-timeline-redis.yaml
+    - openshift/home-timeline-service.yaml
+    - openshift/jaeger.yaml
+    - openshift/media-frontend.yaml
+    - openshift/media-memcached.yaml
+    - openshift/media-mongodb.yaml
+    - openshift/media-service.yaml
+    - openshift/nginx-thrift.yaml
+    - openshift/post-storage-memcached.yaml
+    - openshift/post-storage-mongodb.yaml
+    - openshift/post-storage-service.yaml
+    - openshift/social-graph-mongodb.yaml
+    - openshift/social-graph-redis.yaml
+    - openshift/social-graph-service.yaml
+    - openshift/text-service.yaml
+    - openshift/ubuntu-client.yaml
+    - openshift/unique-id-service.yaml
+    - openshift/url-shorten-memcached.yaml
+    - openshift/url-shorten-mongodb.yaml
+    - openshift/url-shorten-service.yaml
+    - openshift/user-memcached.yaml
+    - openshift/user-mention-service.yaml
+    - openshift/user-mongodb.yaml
+    - openshift/user-service.yaml
+    - openshift/user-timeline-mongodb.yaml
+    - openshift/user-timeline-redis.yaml
+    - openshift/user-timeline-service.yaml
+    - openshift/write-home-timeline-rabbitmq.yaml
+    - openshift/write-home-timeline-service.yaml

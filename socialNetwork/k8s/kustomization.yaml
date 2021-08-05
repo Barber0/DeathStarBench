@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - "compose-post-redis.yaml"
+  - "media-mongodb.yaml"
+  - "social-graph-redis.yaml"
+  - "url-shorten-mongodb.yaml"
+  - "user-timeline-redis.yaml"
+  - "compose-post-service.yaml"
+  - "media-service.yaml"
+  - "social-graph-service.yaml"
+  - "url-shorten-service.yaml"
+  - "user-timeline-service.yaml"
+  - "home-timeline-redis.yaml"
+  - "nginx-thrift.yaml"
+  - "social-network-ns.yaml"
+  - "user-memcached.yaml"
+  - "write-home-timeline-rabbitmq.yaml"
+  - "home-timeline-service.yaml"
+  - "post-storage-memcached.yaml"
+  - "text-service.yaml"
+  - "user-mention-service.yaml"
+  - "write-home-timeline-service.yaml"
+  - "jaeger.yaml"
+  - "post-storage-mongodb.yaml"
+  - "ubuntu-client.yaml"
+  - "user-mongodb.yaml"
+  - "media-frontend.yaml"
+  - "post-storage-service.yaml"
+  - "unique-id-service.yaml"
+  - "user-service.yaml"
+  - "media-memcached.yaml"
+  - "social-graph-mongodb.yaml"
+  - "url-shorten-memcached.yaml"
+  - "user-timeline-mongodb.yaml"
+
+configMapGenerator:
+  - name: "jaeger-config-yaml"
+    files:
+      - "config/jaeger-config.yml"
+  - name: "nginx-thrift-jaeger"
+    files:
+      - "nginx-thrift-config/jaeger-config.json"
+  - name: "media-frontend-nginx"
+    files:
+      - "media-frontend-config/nginx.conf"
+  - name: "media-frontend-lua"
+    files:
+      - ""

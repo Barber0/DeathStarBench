@@ -5,7 +5,7 @@ RUN cd /social-network-microservices \
     && mkdir -p build \
     && cd build \
     && cmake -DCMAKE_BUILD_TYPE=Debug .. \
-    && make -j4 \
+    && make -j2 \
     && make install
 
 WORKDIR /social-network-microservices
