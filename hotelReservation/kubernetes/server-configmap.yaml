@@ -4,7 +4,9 @@ metadata:
   name: server-config
 data:
   #  autosys-1
-  #  InfluxToken: "zudJS49i0spIuHbUiT5Emwpz-1Tz5DxUj6SZHTdpjdS-DFXXQg1FXdN_eVZYUhH-foSEbYe2nPnQ6YSv7RPp9Q=="
+  InfluxToken: "pPheLdhgSoL2UYd-2GGoebJQp_Afy7D27iLyBQFS0_dxTNpPzpoQOSvPRejUxMVkEHt3MGnakK9kJjLAs5GIlw=="
+#  InfluxToken: "RyjVhhS9bRw87nFjE0cVp0GqTo3hnSEUfsXk_v_HHe-pF2AQerA-Fc5WqDVauOodORk0rkAlm1JKgKi0ct_LcA=="
+
   #  autosys-2
   #  InfluxToken: "v98y7IY7oIi-Yrneq5HT4I8nbnPh7J01DUwl4xN8pjsCJYXxu6VJLK6dD3tA2_hTr4rb08TSkzqkNAjiIKdIyA=="
   #  monitor
@@ -12,8 +14,12 @@ data:
   #  old
   #  InfluxToken: "TBKmIVqKLDEaaFuuxotWrUgoy7Z7s0tQAU2kJr7Ht-b_OC-Hg3mJkSKeVegA8YWyjBowHGSpWMnElJ6ZuuiwhA=="
 
+  #  autosys-1-0824
+  #  InfluxToken: "zudJS49i0spIuHbUiT5Emwpz-1Tz5DxUj6SZHTdpjdS-DFXXQg1FXdN_eVZYUhH-foSEbYe2nPnQ6YSv7RPp9Q=="
+
   #  autosys-2-0731
-  InfluxToken: "pLktO2vbZfdE5lKQzHNF93VpGMgdbqeoQnt_AxEcz8S7E-0PomW9nAfa_jR7poT812UeN9skGFhn5iDfffttGQ=="
+  #  InfluxToken: "pLktO2vbZfdE5lKQzHNF93VpGMgdbqeoQnt_AxEcz8S7E-0PomW9nAfa_jR7poT812UeN9skGFhn5iDfffttGQ=="
+
   InfluxOrg: "autosys"
   InfluxBucket: "ingestion"
   InfluxBatchSize: "2000"

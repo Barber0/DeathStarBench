@@ -30,11 +30,17 @@ spec:
         io.kompose.service: memcached-rate
     spec:
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: hostType
+              labelSelector:
+                matchLabels:
+                  app: mongodb-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: host_type
+                  - key: hostType
                     operator: NotIn
                     values:
                       - monitor

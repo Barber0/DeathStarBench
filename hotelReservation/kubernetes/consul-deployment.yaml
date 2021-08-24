@@ -32,8 +32,8 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: host_type
-                    operator: NotIn
+                  - key: hostType
+                    operator: In
                     values:
                       - monitor
       #                  - key: disktype

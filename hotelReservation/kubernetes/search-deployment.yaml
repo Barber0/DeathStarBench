@@ -46,7 +46,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: host_type
+                  - key: hostType
                     operator: NotIn
                     values:
                       - monitor
@@ -63,7 +63,7 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 150m
+              cpu: 200m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE

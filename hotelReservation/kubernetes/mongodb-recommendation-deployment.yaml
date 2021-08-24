@@ -55,18 +55,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: host_type
+                  - key: hostType
                     operator: NotIn
                     values:
                       - monitor
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
-      #                  - key: cpufreq
-      #                    operator: In
-      #                    values:
-      #                      - "2.6"
       containers:
         - image: mongo
           name: hotel-reserv-recommendation-mongo

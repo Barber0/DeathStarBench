@@ -28,11 +28,17 @@ spec:
         io.kompose.service: memcached-reserve
     spec:
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: hostType
+              labelSelector:
+                matchLabels:
+                  app: mongodb-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: host_type
+                  - key: hostType
                     operator: NotIn
                     values:
                       - monitor

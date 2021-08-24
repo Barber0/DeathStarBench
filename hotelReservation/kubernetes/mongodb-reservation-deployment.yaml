@@ -54,7 +54,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: host_type
+                  - key: hostType
                     operator: NotIn
                     values:
                       - monitor
