@@ -10,6 +10,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
 	"os"
@@ -44,12 +46,16 @@ const (
 
 	DummyTagVal = "true"
 
-	PerfLatency = "latency"
+	MetricReqSize  = "req_size"
+	MetricRespSize = "resp_size"
+	PerfLatency    = "latency"
 
 	DummySrcPodWrk = "wrk"
 	DummySrcSvcWrk = DummySrcPodWrk
 
 	ReqHeaderEpoch = "epoch"
+
+	IntSize = 8
 )
 
 type MonitoringHelper struct {
@@ -257,7 +263,52 @@ func (mh *MonitoringHelper) SenderMetricInterceptor() grpc.UnaryClientIntercepto
 	}
 }
 
-func (mh *MonitoringHelper) submitStoreOpStat(startTime, endTime time.Time, table, opType, stage string, err error) {
+func (mh *MonitoringHelper) submitStoreOpStat2(
+	startTime,
+	endTime time.Time,
+	table,
+	opType,
+	stage string,
+	err error,
+	reqSize,
+	respSize int,
+) {
+	pTag := map[string]string{
+		LabelSrcService: mh.serviceName,
+		LabelSrcPod:     mh.podName,
+		LabelDbOpType:   opType,
+		LabelDbStage:    stage,
+		LabelEpoch:      mh.benchEpoch,
+	}
+
+	pData := map[string]interface{}{
+		MetricReqSize:  reqSize,
+		MetricRespSize: respSize,
+		PerfLatency:    endTime.Sub(startTime).Microseconds(),
+	}
+
+	if err != nil {
+		pTag[LabelFailed] = DummyTagVal
+	}
+
+	metricPoint := influxdb2.NewPoint(
+		table,
+		pTag,
+		pData,
+		startTime,
+	)
+
+	mh.writeAPI.WritePoint(metricPoint)
+}
+
+func (mh *MonitoringHelper) submitStoreOpStat(
+	startTime,
+	endTime time.Time,
+	table,
+	opType,
+	stage string,
+	err error,
+) {
 	pTag := map[string]string{
 		LabelSrcService: mh.serviceName,
 		LabelSrcPod:     mh.podName,
@@ -314,4 +365,128 @@ func (mh *MonitoringHelper) DBStatTool(stage string) (dbStatFunc1, dbStatFunc2) 
 			mh.submitStoreOpStat(startTime, endTime, mh.mgoStat, opType, stage, err)
 			return count, err
 		}
+}
+
+func (mh *MonitoringHelper) CalcBsonSize(v interface{}) (int, error) {
+	bsonBts, err := bson.Marshal(v)
+	if err != nil {
+		return 0, err
+	}
+	return len(bsonBts), nil
+}
+
+func (mh *MonitoringHelper) DBCount(c *mgo.Collection, reqObj interface{}) (int, error) {
+	reqSize, err2 := mh.CalcBsonSize(reqObj)
+	if err2 != nil {
+		return 0, err2
+	}
+	startTime := time.Now()
+
+	count, err2 := c.Find(reqObj).Count()
+	endTime := time.Now()
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, IntSize)
+	if err2 != nil {
+		return 0, err2
+	}
+	return count, nil
+}
+
+func (mh *MonitoringHelper) DBScan(c *mgo.Collection, reqObj, result interface{}) error {
+	reqSize, err2 := mh.CalcBsonSize(reqObj)
+	if err2 != nil {
+		return err2
+	}
+	startTime := time.Now()
+
+	err2 = c.Find(reqObj).All(result)
+	endTime := time.Now()
+	respSize, err2 := mh.CalcBsonSize(result)
+	if err2 != nil {
+		return err2
+	}
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, respSize)
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
+
+func (mh *MonitoringHelper) DBInsert(c *mgo.Collection, reqObj interface{}) error {
+	reqSize, err2 := mh.CalcBsonSize(reqObj)
+	if err2 != nil {
+		return err2
+	}
+	startTime := time.Now()
+	err2 = c.Insert(reqObj)
+	endTime := time.Now()
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpInsert, DbStageRun, err2, reqSize, IntSize)
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
+
+func (mh *MonitoringHelper) DBRead(c *mgo.Collection, reqObj, result interface{}) error {
+	reqSize, err2 := mh.CalcBsonSize(reqObj)
+	if err2 != nil {
+		return err2
+	}
+	startTime := time.Now()
+
+	err2 = c.Find(reqObj).One(result)
+	endTime := time.Now()
+	respSize, err2 := mh.CalcBsonSize(result)
+	if err2 != nil {
+		return err2
+	}
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpRead, DbStageRun, err2, reqSize, respSize)
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
+
+func (mh *MonitoringHelper) CacheInsert(cli *memcache.Client, it *memcache.Item) error {
+	return mh.cacheSet(cli, it, DbOpInsert)
+}
+
+func (mh *MonitoringHelper) CacheUpdate(cli *memcache.Client, it *memcache.Item) error {
+	return mh.cacheSet(cli, it, DbOpUpdate)
+}
+
+func (mh *MonitoringHelper) cacheSet(cli *memcache.Client, it *memcache.Item, op string) error {
+	reqSize := len(it.Key) + len(it.Value)
+	startTime := time.Now()
+	err := cli.Set(it)
+	endTime := time.Now()
+	mh.submitStoreOpStat2(
+		startTime,
+		endTime,
+		mh.memcStat,
+		op,
+		DbStageRun,
+		err,
+		reqSize,
+		0,
+	)
+	return err
+}
+
+func (mh *MonitoringHelper) CacheRead(cli *memcache.Client, key string) (*memcache.Item, error) {
+	reqSize := len(key)
+	startTime := time.Now()
+	resItem, err := cli.Get(key)
+	endTime := time.Now()
+	respSize := len(resItem.Key) + len(resItem.Value)
+	mh.submitStoreOpStat2(
+		startTime,
+		endTime,
+		mh.memcStat,
+		DbOpRead,
+		DbStageRun,
+		err,
+		reqSize,
+		respSize,
+	)
+	return resItem, err
 }

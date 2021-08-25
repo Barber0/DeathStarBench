@@ -15,9 +15,10 @@ const (
 	CfgKeyInfluxToken         = "InfluxToken"
 	CfgKeyInfluxOrg           = "InfluxOrg"
 	CfgKeyInfluxBucket        = "InfluxBucket"
-	CfgKeyServiceStat         = "InfluxServiceStat"
-	CfgKeyMgoStat             = "InfluxMgoStat"
-	CfgKeyMemcStat            = "InfluxMemcStat"
+
+	CfgKeyServiceStat = "InfluxServiceStat"
+	CfgKeyMgoStat     = "InfluxMgoStat"
+	CfgKeyMemcStat    = "InfluxMemcStat"
 
 	CfgKeySvrDbConn       = "SVR_DBCONN"
 	CfgKeySvrTimeout      = "SVR_TIMEOUT"

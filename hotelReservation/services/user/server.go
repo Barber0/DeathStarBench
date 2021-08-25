@@ -117,12 +117,8 @@ func (s *Server) CheckUser(ctx context.Context, req *pb.Request) (*pb.Result, er
 
 	c := sess.DB("user-db").C("user")
 
-	statFunc1, _ := s.Monitor.DBStatTool(common.DbStageRun)
-
 	user := User{}
-	err := statFunc1(common.DbOpRead, func() error {
-		return c.Find(bson.M{"username": req.Username}).One(&user)
-	})
+	err := s.Monitor.DBRead(c, bson.M{"username": req.Username}, &user)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +135,6 @@ func loadUsers(monHelper *common.MonitoringHelper, session *mgo.Session) map[str
 	// 	panic(err)
 	// }
 	// defer session.Close()
-	dbStat1, _ := monHelper.DBStatTool(common.DbStageRun)
 
 	s := session.Copy()
 	defer s.Close()
@@ -147,9 +142,7 @@ func loadUsers(monHelper *common.MonitoringHelper, session *mgo.Session) map[str
 
 	// unmarshal json profiles
 	var users []User
-	err := dbStat1(common.DbOpScan, func() error {
-		return c.Find(bson.M{}).All(&users)
-	})
+	err := monHelper.DBScan(c, bson.M{}, &users)
 	if err != nil {
 		log.Println("Failed get users data: ", err)
 	}

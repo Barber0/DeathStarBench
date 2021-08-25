@@ -146,16 +146,12 @@ func newGeoIndex(monHelper *common.MonitoringHelper, session *mgo.Session) *geoi
 
 	// fmt.Printf("new geo newGeoIndex\n")
 
-	dbStat1, _ := monHelper.DBStatTool(common.DbStageRun)
-
 	s := session.Copy()
 	defer s.Close()
 	c := s.DB("geo-db").C("geo")
 
 	var points []*point
-	err := dbStat1(common.DbOpScan, func() error {
-		return c.Find(bson.M{}).All(&points)
-	})
+	err := c.Find(bson.M{}).All(&points)
 	if err != nil {
 		log.Println("Failed get geo data: ", err)
 	}

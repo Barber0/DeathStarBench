@@ -165,8 +165,6 @@ func loadRecommendations(monHelper *common.MonitoringHelper, session *mgo.Sessio
 	// }
 	// defer session.Close()
 
-	dbStat1, _ := monHelper.DBStatTool(common.DbStageRun)
-
 	s := session.Copy()
 	defer s.Close()
 
@@ -174,9 +172,7 @@ func loadRecommendations(monHelper *common.MonitoringHelper, session *mgo.Sessio
 
 	// unmarshal json profiles
 	var hotels []Hotel
-	err := dbStat1(common.DbOpScan, func() error {
-		return c.Find(bson.M{}).All(&hotels)
-	})
+	err := c.Find(bson.M{}).All(&hotels)
 	if err != nil {
 		log.Println("Failed get hotels data: ", err)
 	}

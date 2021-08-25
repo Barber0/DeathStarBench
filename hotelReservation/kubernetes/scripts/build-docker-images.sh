@@ -4,7 +4,7 @@ cd $(dirname $0)/../..
 
 EXEC=docker
 USER="simonalphafang"
-TAG="0.0.12-pagent4"
+TAG="0.0.13-valsize"
 ROOT_FOLDER=$(pwd)
 
 PROTO_NAME=hotel_reserve_proto

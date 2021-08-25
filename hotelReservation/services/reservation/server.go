@@ -100,8 +100,6 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 	// }
 	// defer session.Close()
 
-	dbStat1, _ := s.Monitor.DBStatTool(common.DbStageRun)
-
 	session := s.MongoSession.Copy()
 	defer session.Close()
 
@@ -119,8 +117,6 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 	indate := inDate.String()[0:10]
 
-	cacheStat1, cacheStat2 := s.Monitor.CacheStatTool(common.DbStageRun)
-
 	memcDateNumMap := make(map[string]int)
 
 	for inDate.Before(outDate) {
@@ -131,9 +127,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 		// first check memc
 		memcKey := hotelId + "_" + inDate.String()[0:10] + "_" + outdate
-		item, err := cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
-			return s.MemcClient.Get(memcKey)
-		})
+		item, err := s.Monitor.CacheRead(s.MemcClient, memcKey)
 		if err == nil {
 			// memcached hit
 			count, _ = strconv.Atoi(string(item.Value))
@@ -144,9 +138,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			// memcached miss
 			// fmt.Printf("memcached miss\n")
 			reserve := make([]reservation, 0)
-			err := dbStat1(common.DbOpScan, func() error {
-				return c.Find(&bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}).All(&reserve)
-			})
+			err := s.Monitor.DBScan(c, &bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}, &reserve)
 			if err != nil {
 				panic(err)
 			}
@@ -165,9 +157,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 		// check capacity
 		// check memc capacity
 		memcCapKey := hotelId + "_cap"
-		item, err = cacheStat2(common.DbOpRead, func() (*memcache.Item, error) {
-			return s.MemcClient.Get(memcCapKey)
-		})
+		item, err = s.Monitor.CacheRead(s.MemcClient, memcCapKey)
 		hotelCap := 0
 		if err == nil {
 			// memcached hit
@@ -176,16 +166,14 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 		} else if err == memcache.ErrCacheMiss {
 			// memcached miss
 			var num number
-			err = c1.Find(&bson.M{"hotelId": hotelId}).One(&num)
+			err = s.Monitor.DBScan(c1, &bson.M{"hotelId": hotelId}, &num)
 			if err != nil {
 				panic(err)
 			}
 			hotelCap = int(num.Number)
 
 			// write to memcache
-			cacheStat1(common.DbOpInsert, func() error {
-				return s.MemcClient.Set(&memcache.Item{Key: memcCapKey, Value: []byte(strconv.Itoa(hotelCap))})
-			})
+			s.Monitor.CacheInsert(s.MemcClient, &memcache.Item{Key: memcCapKey, Value: []byte(strconv.Itoa(hotelCap))})
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)
 			panic(err)
@@ -199,9 +187,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 	// only update reservation number cache after check succeeds
 	for key, val := range memcDateNumMap {
-		cacheStat1(common.DbOpUpdate, func() error {
-			return s.MemcClient.Set(&memcache.Item{Key: key, Value: []byte(strconv.Itoa(val))})
-		})
+		s.Monitor.CacheUpdate(s.MemcClient, &memcache.Item{Key: key, Value: []byte(strconv.Itoa(val))})
 	}
 
 	inDate, _ = time.Parse(
@@ -213,13 +199,12 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 	for inDate.Before(outDate) {
 		inDate = inDate.AddDate(0, 0, 1)
 		outdate := inDate.String()[0:10]
-		err := dbStat1(common.DbOpInsert, func() error {
-			return c.Insert(&reservation{
-				HotelId:      hotelId,
-				CustomerName: req.CustomerName,
-				InDate:       indate,
-				OutDate:      outdate,
-				Number:       int(req.RoomNumber)})
+		err := s.Monitor.DBInsert(c, &reservation{
+			HotelId:      hotelId,
+			CustomerName: req.CustomerName,
+			InDate:       indate,
+			OutDate:      outdate,
+			Number:       int(req.RoomNumber),
 		})
 		if err != nil {
 			panic(err)
@@ -281,12 +266,9 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				// fmt.Printf("memcached hit %s = %d\n", memc_key, count)
 			} else if err == memcache.ErrCacheMiss {
 				// memcached miss
-				dbStat1, _ := s.Monitor.DBStatTool(common.DbStageRun)
 
 				reserve := make([]reservation, 0)
-				err := dbStat1(common.DbOpScan, func() error {
-					return c.Find(&bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}).All(&reserve)
-				})
+				err := s.Monitor.DBScan(c, &bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}, &reserve)
 				if err != nil {
 					panic(err)
 				}
