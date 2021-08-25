@@ -62,7 +62,7 @@ spec:
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_proto:0.0.13-valsize
+          image: simonalphafang/hotel_reserve_proto:0.0.13-resplen6
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-user
           securityContext:

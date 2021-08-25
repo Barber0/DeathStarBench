@@ -198,6 +198,8 @@ func (mh *MonitoringHelper) executeHandler(ctx context2.Context, req interface{}
 			default:
 				err = fmt.Errorf("%v", pa)
 			}
+			log.Println(pa)
+			debug.Stack()
 		}
 	}()
 	resp, err = handler(ctx, req)
@@ -409,19 +411,25 @@ func (mh *MonitoringHelper) DBCount(c *mgo.Collection, reqObj interface{}) (int,
 
 func (mh *MonitoringHelper) DBScan(c *mgo.Collection, reqObj, result interface{}) error {
 	startTime := time.Now()
-
 	err := c.Find(reqObj).All(result)
 	endTime := time.Now()
 
+	var (
+		respSize int
+		respLen  int
+		err2     error
+	)
+	if err == nil {
+		respSize, respLen, err2 = mh.BsonSizeLen(result)
+		if err2 != nil {
+			log.Println("parse db response failed: ", err2)
+		}
+	}
 	reqSize, err2 := mh.BsonSize(reqObj)
 	if err2 != nil {
-		return err2
+		log.Println("parse db request failed: ", err2)
 	}
-	respSize, respLen, err2 := mh.BsonSizeLen(result)
-	if err2 != nil {
-		return err2
-	}
-	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, respSize, respLen)
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err, reqSize, respSize, respLen)
 	return err
 }
 
@@ -435,31 +443,29 @@ func (mh *MonitoringHelper) DBInsert(c *mgo.Collection, reqObj interface{}) erro
 		return err2
 	}
 	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpInsert, DbStageRun, err2, reqSize, IntSize, 1)
-	if err2 != nil {
-		return err2
-	}
-	return nil
+	return err2
 }
 
 func (mh *MonitoringHelper) DBRead(c *mgo.Collection, reqObj, result interface{}) error {
 	startTime := time.Now()
 
-	err2 := c.Find(reqObj).One(result)
+	err := c.Find(reqObj).One(result)
 	endTime := time.Now()
 
 	reqSize, err2 := mh.BsonSize(reqObj)
 	if err2 != nil {
-		return err2
+		log.Println("parse db request failed: ", err2)
 	}
-	respSize, err2 := mh.BsonSize(result)
-	if err2 != nil {
-		return err2
+
+	var respSize int
+	if result != nil {
+		respSize, err2 = mh.BsonSize(result)
+		if err2 != nil {
+			log.Println("parse db response failed: ", err2)
+		}
 	}
-	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpRead, DbStageRun, err2, reqSize, respSize, 1)
-	if err2 != nil {
-		return err2
-	}
-	return nil
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpRead, DbStageRun, err, reqSize, respSize, 1)
+	return err
 }
 
 func (mh *MonitoringHelper) CacheInsert(cli *memcache.Client, it *memcache.Item) error {
@@ -494,7 +500,10 @@ func (mh *MonitoringHelper) CacheRead(cli *memcache.Client, key string) (*memcac
 	startTime := time.Now()
 	resItem, err := cli.Get(key)
 	endTime := time.Now()
-	respSize := len(resItem.Key) + len(resItem.Value)
+	var respSize int
+	if err == nil {
+		respSize = len(resItem.Key) + len(resItem.Value)
+	}
 	mh.submitStoreOpStat2(
 		startTime,
 		endTime,
