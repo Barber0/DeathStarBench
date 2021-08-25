@@ -53,7 +53,7 @@ spec:
       containers:
         - command:
             - frontend
-          image: simonalphafang/hotel_reserve_proto:0.0.12-pagent4
+          image: simonalphafang/hotel_reserve_proto:0.0.13-valsize
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-frontend
           securityContext:
