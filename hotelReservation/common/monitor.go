@@ -48,6 +48,7 @@ const (
 
 	MetricReqSize  = "req_size"
 	MetricRespSize = "resp_size"
+	MetricRespLen  = "resp_len"
 	PerfLatency    = "latency"
 
 	DummySrcPodWrk = "wrk"
@@ -272,6 +273,7 @@ func (mh *MonitoringHelper) submitStoreOpStat2(
 	err error,
 	reqSize,
 	respSize int,
+	respLen int,
 ) {
 	pTag := map[string]string{
 		LabelSrcService: mh.serviceName,
@@ -284,7 +286,9 @@ func (mh *MonitoringHelper) submitStoreOpStat2(
 	pData := map[string]interface{}{
 		MetricReqSize:  reqSize,
 		MetricRespSize: respSize,
-		PerfLatency:    endTime.Sub(startTime).Microseconds(),
+		MetricRespLen:  respLen,
+
+		PerfLatency: endTime.Sub(startTime).Microseconds(),
 	}
 
 	if err != nil {
@@ -367,7 +371,7 @@ func (mh *MonitoringHelper) DBStatTool(stage string) (dbStatFunc1, dbStatFunc2) 
 		}
 }
 
-func (mh *MonitoringHelper) CalcBsonSize(v interface{}) (int, error) {
+func (mh *MonitoringHelper) BsonSize(v interface{}) (int, error) {
 	bsonBts, err := bson.Marshal(v)
 	if err != nil {
 		return 0, err
@@ -375,8 +379,20 @@ func (mh *MonitoringHelper) CalcBsonSize(v interface{}) (int, error) {
 	return len(bsonBts), nil
 }
 
+func (mh *MonitoringHelper) BsonSizeLen(v interface{}) (int, int, error) {
+	bts, err := bson.Marshal(v)
+	if err != nil {
+		return 0, 0, err
+	}
+	var dummyArr bson.D
+	if err = bson.Unmarshal(bts, &dummyArr); err != nil {
+		return 0, 0, err
+	}
+	return len(bts), len(dummyArr), nil
+}
+
 func (mh *MonitoringHelper) DBCount(c *mgo.Collection, reqObj interface{}) (int, error) {
-	reqSize, err2 := mh.CalcBsonSize(reqObj)
+	reqSize, err2 := mh.BsonSize(reqObj)
 	if err2 != nil {
 		return 0, err2
 	}
@@ -384,7 +400,7 @@ func (mh *MonitoringHelper) DBCount(c *mgo.Collection, reqObj interface{}) (int,
 
 	count, err2 := c.Find(reqObj).Count()
 	endTime := time.Now()
-	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, IntSize)
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, IntSize, 1)
 	if err2 != nil {
 		return 0, err2
 	}
@@ -392,34 +408,33 @@ func (mh *MonitoringHelper) DBCount(c *mgo.Collection, reqObj interface{}) (int,
 }
 
 func (mh *MonitoringHelper) DBScan(c *mgo.Collection, reqObj, result interface{}) error {
-	reqSize, err2 := mh.CalcBsonSize(reqObj)
-	if err2 != nil {
-		return err2
-	}
 	startTime := time.Now()
 
-	err2 = c.Find(reqObj).All(result)
+	err := c.Find(reqObj).All(result)
 	endTime := time.Now()
-	respSize, err2 := mh.CalcBsonSize(result)
+
+	reqSize, err2 := mh.BsonSize(reqObj)
 	if err2 != nil {
 		return err2
 	}
-	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, respSize)
+	respSize, respLen, err2 := mh.BsonSizeLen(result)
 	if err2 != nil {
 		return err2
 	}
-	return nil
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpScan, DbStageRun, err2, reqSize, respSize, respLen)
+	return err
 }
 
 func (mh *MonitoringHelper) DBInsert(c *mgo.Collection, reqObj interface{}) error {
-	reqSize, err2 := mh.CalcBsonSize(reqObj)
+	startTime := time.Now()
+	err2 := c.Insert(reqObj)
+	endTime := time.Now()
+
+	reqSize, err2 := mh.BsonSize(reqObj)
 	if err2 != nil {
 		return err2
 	}
-	startTime := time.Now()
-	err2 = c.Insert(reqObj)
-	endTime := time.Now()
-	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpInsert, DbStageRun, err2, reqSize, IntSize)
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpInsert, DbStageRun, err2, reqSize, IntSize, 1)
 	if err2 != nil {
 		return err2
 	}
@@ -427,19 +442,20 @@ func (mh *MonitoringHelper) DBInsert(c *mgo.Collection, reqObj interface{}) erro
 }
 
 func (mh *MonitoringHelper) DBRead(c *mgo.Collection, reqObj, result interface{}) error {
-	reqSize, err2 := mh.CalcBsonSize(reqObj)
-	if err2 != nil {
-		return err2
-	}
 	startTime := time.Now()
 
-	err2 = c.Find(reqObj).One(result)
+	err2 := c.Find(reqObj).One(result)
 	endTime := time.Now()
-	respSize, err2 := mh.CalcBsonSize(result)
+
+	reqSize, err2 := mh.BsonSize(reqObj)
 	if err2 != nil {
 		return err2
 	}
-	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpRead, DbStageRun, err2, reqSize, respSize)
+	respSize, err2 := mh.BsonSize(result)
+	if err2 != nil {
+		return err2
+	}
+	mh.submitStoreOpStat2(startTime, endTime, mh.mgoStat, DbOpRead, DbStageRun, err2, reqSize, respSize, 1)
 	if err2 != nil {
 		return err2
 	}
@@ -468,6 +484,7 @@ func (mh *MonitoringHelper) cacheSet(cli *memcache.Client, it *memcache.Item, op
 		err,
 		reqSize,
 		0,
+		1,
 	)
 	return err
 }
@@ -487,6 +504,7 @@ func (mh *MonitoringHelper) CacheRead(cli *memcache.Client, key string) (*memcac
 		err,
 		reqSize,
 		respSize,
+		1,
 	)
 	return resItem, err
 }
