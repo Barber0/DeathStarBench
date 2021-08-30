@@ -66,6 +66,7 @@ func main() {
 
 	monHelper := common.NewMonitoringHelper(
 		common.ServiceGeo,
+		paramAgent.IpRank,
 		result,
 	)
 

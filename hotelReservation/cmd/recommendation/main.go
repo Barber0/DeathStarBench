@@ -68,6 +68,7 @@ func main() {
 
 	monHelper := common.NewMonitoringHelper(
 		common.ServiceReco,
+		paramAgent.IpRank,
 		result,
 	)
 

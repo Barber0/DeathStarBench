@@ -51,7 +51,7 @@ const (
 	MetricRespLen  = "resp_len"
 	PerfLatency    = "latency"
 
-	DummySrcPodWrk = "wrk"
+	DummySrcPodWrk = "0"
 	DummySrcSvcWrk = DummySrcPodWrk
 
 	ReqHeaderEpoch = "epoch"
@@ -89,9 +89,7 @@ func getPodName() string {
 	return podName
 }
 
-var podName = getPodName()
-
-func NewMonitoringHelper(serviceName string, config map[string]string) *MonitoringHelper {
+func NewMonitoringHelper(serviceName string, podRank int, config map[string]string) *MonitoringHelper {
 
 	influxBatchSize, _ := strconv.Atoi(GetCfgData(CfgKeyInfluxBatchSize, config))
 	influxFlushInterval, _ := strconv.Atoi(GetCfgData(CfgKeyInfluxFlushInterval, config))
@@ -102,7 +100,7 @@ func NewMonitoringHelper(serviceName string, config map[string]string) *Monitori
 
 	helper := &MonitoringHelper{
 		serviceName: serviceName,
-		podName:     podName,
+		podName:     strconv.Itoa(podRank),
 		metricMap:   make(map[string]prometheus.Gauge),
 		influxCli:   cli,
 		writeAPI: cli.WriteAPI(
@@ -339,22 +337,6 @@ func (mh *MonitoringHelper) submitStoreOpStat(
 	)
 
 	mh.writeAPI.WritePoint(metricPoint)
-}
-
-func (mh *MonitoringHelper) CacheStatTool(stage string) (cacheStatFunc1, cacheStatFunc2) {
-	return func(op string, f func() error) error {
-			startTime := time.Now()
-			err := f()
-			endTime := time.Now()
-			mh.submitStoreOpStat(startTime, endTime, mh.memcStat, op, stage, err)
-			return err
-		}, func(op string, f func() (*memcache.Item, error)) (*memcache.Item, error) {
-			startTime := time.Now()
-			it, err := f()
-			endTime := time.Now()
-			mh.submitStoreOpStat(startTime, endTime, mh.memcStat, op, stage, err)
-			return it, err
-		}
 }
 
 func (mh *MonitoringHelper) DBStatTool(stage string) (dbStatFunc1, dbStatFunc2) {
