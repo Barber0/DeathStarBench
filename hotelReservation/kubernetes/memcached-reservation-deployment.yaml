@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: memcached-reserve
-    io.kompose.service: memcached-reserve
+    app: memc-reservation
+    io.kompose.service: memc-reservation
     role: db
-  name: memcached-reserve
+  name: memc-reservation
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: memcached-reserve
+      io.kompose.service: memc-reservation
   template:
     metadata:
       annotations:
@@ -24,8 +24,8 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       labels:
         role: db
-        app: memcached-reserve
-        io.kompose.service: memcached-reserve
+        app: memc-reservation
+        io.kompose.service: memc-reservation
     spec:
       affinity:
         podAffinity:
@@ -33,7 +33,7 @@ spec:
             - topologyKey: hostType
               labelSelector:
                 matchLabels:
-                  app: mongodb-reservation
+                  app: mgo-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

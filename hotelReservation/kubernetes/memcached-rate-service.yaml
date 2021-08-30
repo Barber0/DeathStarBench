@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: memcached-rate
-    io.kompose.service: memcached-rate
-  name: memcached-rate
+    app: memc-rate
+    io.kompose.service: memc-rate
+  name: memc-rate
 spec:
   ports:
     - name: "11211"
       port: 11211
       targetPort: 11211
   selector:
-    io.kompose.service: memcached-rate
+    io.kompose.service: memc-rate
 status:
   loadBalancer: {}

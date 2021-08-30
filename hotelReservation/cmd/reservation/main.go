@@ -49,8 +49,8 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		reserveMongoAddr = fmt.Sprintf("mongodb-reserve:%d", common.MongoPort)
-		reserveMemcAddr = fmt.Sprintf("memcached-reserve:%d", common.MemcachedPort)
+		reserveMongoAddr = fmt.Sprintf("mgo-reservation:%d", common.MongoPort)
+		reserveMemcAddr = fmt.Sprintf("memc-reservation:%d", common.MemcachedPort)
 		//reserveMemcAddr = "memcached-reserve:" + strings.Split(result["ReserveMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {

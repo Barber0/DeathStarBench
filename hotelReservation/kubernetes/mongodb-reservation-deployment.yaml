@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mongodb-reservation
+  name: mgo-reservation
   labels:
     role: db-config
 data:
@@ -26,15 +26,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: mongodb-reservation
-    io.kompose.service: mongodb-reservation
+    app: mgo-reservation
+    io.kompose.service: mgo-reservation
     role: db
-  name: mongodb-reservation
+  name: mgo-reservation
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: mongodb-reservation
+      io.kompose.service: mgo-reservation
   template:
     metadata:
       annotations:
@@ -44,9 +44,9 @@ spec:
         sidecar.istio.io/statsInclusionRegexps: http.*
       labels:
         role: db
-        app: mongodb-reservation
-        mongoRepl: reserve
-        io.kompose.service: mongodb-reservation
+        app: mgo-reservation
+        mongoRepl: reservation
+        io.kompose.service: mgo-reservation
     spec:
       serviceAccountName: mgo-operator
       affinity:
@@ -80,10 +80,10 @@ spec:
       #          image: cvallance/mongo-k8s-sidecar
       #          env:
       #            - name: "MONGO_SIDECAR_POD_LABELS"
-      #              value: "mongoRepl=reserve"
+      #              value: "mongoRepl=reservation"
       hostname: reservation-db
       restartPolicy: Always
       volumes:
         - name: mongodb-conf
           configMap:
-            name: mongodb-reservation
+            name: mgo-reservation

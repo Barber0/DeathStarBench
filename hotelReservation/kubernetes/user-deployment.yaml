@@ -46,7 +46,7 @@ spec:
             - topologyKey: hostType
               labelSelector:
                 matchLabels:
-                  app: mongodb-user
+                  app: mgo-user
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

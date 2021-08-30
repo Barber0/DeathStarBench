@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: memcached-reserve
-    io.kompose.service: memcached-reserve
-  name: memcached-reserve
+    app: memc-reservation
+    io.kompose.service: memc-reservation
+  name: memc-reservation
 spec:
   ports:
     - name: "11211"
       port: 11211
       targetPort: 11211
   selector:
-    io.kompose.service: memcached-reserve
+    io.kompose.service: memc-reservation
 status:
   loadBalancer: {}

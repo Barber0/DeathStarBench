@@ -47,7 +47,7 @@ spec:
             - topologyKey: hostType
               labelSelector:
                 matchLabels:
-                  app: mongodb-rate
+                  app: mgo-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

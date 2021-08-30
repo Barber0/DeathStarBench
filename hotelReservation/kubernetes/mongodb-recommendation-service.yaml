@@ -6,9 +6,9 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: mongodb-recommendation
-    io.kompose.service: mongodb-recommendation
-  name: mongodb-recommendation
+    app: mgo-recommendation
+    io.kompose.service: mgo-recommendation
+  name: mgo-recommendation
 spec:
   ports:
     - name: "27017"

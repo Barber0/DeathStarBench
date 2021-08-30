@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: mongodb-rate
-    io.kompose.service: mongodb-rate
-  name: mongodb-rate
+    app: mgo-rate
+    io.kompose.service: mgo-rate
+  name: mgo-rate
 spec:
   ports:
     - name: "27017"
       port: 27017
       targetPort: 27017
   selector:
-    io.kompose.service: mongodb-rate
+    io.kompose.service: mgo-rate
 status:
   loadBalancer: {}

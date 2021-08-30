@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: memcached-profile
-    io.kompose.service: memcached-profile
+    app: memc-profile
+    io.kompose.service: memc-profile
     role: db
-  name: memcached-profile
+  name: memc-profile
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: memcached-profile
+      io.kompose.service: memc-profile
   strategy: { }
   template:
     metadata:
@@ -26,8 +26,8 @@ spec:
       creationTimestamp: null
       labels:
         role: db
-        app: memcached-profile
-        io.kompose.service: memcached-profile
+        app: memc-profile
+        io.kompose.service: memc-profile
     spec:
       affinity:
         podAffinity:
@@ -35,7 +35,7 @@ spec:
             - topologyKey: hostType
               labelSelector:
                 matchLabels:
-                  app: mongodb-profile
+                  app: mgo-profile
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

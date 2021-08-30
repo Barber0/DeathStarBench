@@ -47,7 +47,7 @@ spec:
             - topologyKey: hostType
               labelSelector:
                 matchLabels:
-                  app: mongodb-geo
+                  app: mgo-geo
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

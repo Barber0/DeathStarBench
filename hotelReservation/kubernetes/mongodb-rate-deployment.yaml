@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mongodb-rate
+  name: mgo-rate
   labels:
     role: db-config
 data:
@@ -83,4 +83,4 @@ spec:
         #            claimName: rate-pvc
         - name: mongodb-config
           configMap:
-            name: mongodb-rate
+            name: mgo-rate

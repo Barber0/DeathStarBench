@@ -49,8 +49,8 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		rateMongoAddr = fmt.Sprintf("mongodb-rate:%d", common.MongoPort)
-		rateMemcAddr = fmt.Sprintf("memcached-rate:%d", common.MemcachedPort)
+		rateMongoAddr = fmt.Sprintf("mgo-rate:%d", common.MongoPort)
+		rateMemcAddr = fmt.Sprintf("memc-rate:%d", common.MemcachedPort)
 		//rateMongoAddr = "mongodb-rate:" + strings.Split(result["RateMongoAddress"], ":")[1]
 		//rateMemcAddr = "memcached-rate:" + strings.Split(result["RateMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()

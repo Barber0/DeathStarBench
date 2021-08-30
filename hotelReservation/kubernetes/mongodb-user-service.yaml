@@ -6,15 +6,13 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: mongodb-user
-    io.kompose.service: mongodb-user
-  name: mongodb-user
+    app: mgo-user
+    io.kompose.service: mgo-user
+  name: mgo-user
 spec:
   ports:
     - name: "27017"
       port: 27017
       targetPort: 27017
   selector:
-    io.kompose.service: mongodb-user
-status:
-  loadBalancer: {}
+    io.kompose.service: mgo-user

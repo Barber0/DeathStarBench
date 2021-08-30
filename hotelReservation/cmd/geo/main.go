@@ -44,8 +44,7 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		geoMongoAddr = fmt.Sprintf("mongodb-geo:%d", common.MongoPort)
-		//geoMongoAddr = "mongodb-geo:" + strings.Split(result["GeoMongoAddress"], ":")[1]
+		geoMongoAddr = fmt.Sprintf("mgo-geo:%d", common.MongoPort)
 		address, _ := net.InterfaceAddrs()
 		for _, a := range address {
 			if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {

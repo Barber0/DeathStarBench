@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    app: memcached-rate
-    io.kompose.service: memcached-rate
+    app: memc-rate
+    io.kompose.service: memc-rate
     role: db
-  name: memcached-rate
+  name: memc-rate
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: memcached-rate
+      io.kompose.service: memc-rate
   strategy: { }
   template:
     metadata:
@@ -26,8 +26,8 @@ spec:
       creationTimestamp: null
       labels:
         role: db
-        app: memcached-rate
-        io.kompose.service: memcached-rate
+        app: memc-rate
+        io.kompose.service: memc-rate
     spec:
       affinity:
         podAffinity:
@@ -35,7 +35,7 @@ spec:
             - topologyKey: hostType
               labelSelector:
                 matchLabels:
-                  app: mongodb-rate
+                  app: mgo-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

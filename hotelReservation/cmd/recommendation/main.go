@@ -45,8 +45,7 @@ func main() {
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
-		recommendationMongoAddr = fmt.Sprintf("mongodb-recommendation:%d", common.MongoPort)
-		//recommendationMongoAddr = "mongodb-recommendation:" + strings.Split(result["RecommendMongoAddress"], ":")[1]
+		recommendationMongoAddr = fmt.Sprintf("mgo-recommendation:%d", common.MongoPort)
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
