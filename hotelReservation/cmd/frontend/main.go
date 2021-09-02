@@ -73,7 +73,7 @@ func main() {
 		//Tracer:   tracer,
 		IpAddr:  servIp,
 		Port:    servPort,
-		Monitor: common.NewMonitoringHelper(common.ServiceFrontend, result),
+		Monitor: common.NewMonitoringHelper(common.ServiceFrontend, paramAgent.IpRank, result),
 	}
 	log.Fatal(srv.Run())
 }

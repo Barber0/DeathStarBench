@@ -59,7 +59,7 @@ spec:
       containers:
         - command:
             - recommendation
-          image: simonalphafang/hotel_reserve_proto:0.0.13-resplen6
+          image: simonalphafang/hotel_reserve_proto:0.0.13-podname2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-recommendation
           securityContext:

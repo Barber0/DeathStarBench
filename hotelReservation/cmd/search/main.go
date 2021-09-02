@@ -87,6 +87,7 @@ func main() {
 		Registry: registry,
 		Monitor: common.NewMonitoringHelper(
 			common.ServiceSearch,
+			paramAgent.IpRank,
 			result,
 		),
 	}

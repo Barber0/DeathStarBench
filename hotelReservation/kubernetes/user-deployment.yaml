@@ -55,14 +55,10 @@ spec:
                     operator: NotIn
                     values:
                       - monitor
-      #                  - key: disktype
-      #                    operator: NotIn
-      #                    values:
-      #                      - premium
       containers:
         - command:
             - user
-          image: simonalphafang/hotel_reserve_proto:0.0.13-resplen6
+          image: simonalphafang/hotel_reserve_proto:0.0.13-podname2
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-user
           securityContext:
