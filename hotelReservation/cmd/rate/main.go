@@ -87,7 +87,7 @@ func main() {
 	memcClient.Timeout = time.Second * time.Duration(memcTimeout)
 	memcClient.MaxIdleConns = memcIdleConn
 
-	mongoSession := initializeDatabase(monHelper, rateMongoAddr)
+	mongoSession := initializeDatabase(rateMongoAddr)
 	defer mongoSession.Close()
 	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
 	mongoSession.SetPoolLimit(poolLimit)

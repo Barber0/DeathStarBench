@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"hotel_reserve/common"
 	"log"
 	"strconv"
 )
@@ -25,7 +24,7 @@ type RatePlan struct {
 	RoomType *RoomType `bson:"roomType"`
 }
 
-func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Session {
+func initializeDatabase(url string) *mgo.Session {
 	fmt.Printf("rate db ip addr = %s\n", url)
 	session, err := mgo.Dial(url)
 	if err != nil {
@@ -33,84 +32,67 @@ func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Ses
 	}
 	// defer session.Close()
 
-	dbStat1, dbStat2 := monHelper.DBStatTool(common.DbStageLoad)
-
 	c := session.DB("rate-db").C("inventory")
-	count, err := dbStat2(common.DbOpScan, func() (int, error) {
-		return c.Find(&bson.M{"hotelId": "1"}).Count()
-	})
+	count, err := c.Find(&bson.M{"hotelId": "1"}).Count()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	if count == 0 {
-		err = dbStat1(common.DbOpInsert, func() error {
-			return c.Insert(&RatePlan{
-				"1",
-				"RACK",
-				"2015-04-09",
-				"2015-04-10",
-				&RoomType{
-					109.00,
-					"KNG",
-					"King sized bed",
-					109.00,
-					123.17}})
-		})
-
+		err = c.Insert(&RatePlan{
+			"1",
+			"RACK",
+			"2015-04-09",
+			"2015-04-10",
+			&RoomType{
+				109.00,
+				"KNG",
+				"King sized bed",
+				109.00,
+				123.17}})
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = dbStat2(common.DbOpScan, func() (int, error) {
-		return c.Find(&bson.M{"hotelId": "2"}).Count()
-	})
+	count, err = c.Find(&bson.M{"hotelId": "2"}).Count()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	if count == 0 {
-		err = dbStat1(common.DbOpInsert, func() error {
-			return c.Insert(&RatePlan{
-				"2",
-				"RACK",
-				"2015-04-09",
-				"2015-04-10",
-				&RoomType{
-					139.00,
-					"QN",
-					"Queen sized bed",
-					139.00,
-					153.09}})
-		})
-
+		err = c.Insert(&RatePlan{
+			"2",
+			"RACK",
+			"2015-04-09",
+			"2015-04-10",
+			&RoomType{
+				139.00,
+				"QN",
+				"Queen sized bed",
+				139.00,
+				153.09}})
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	count, err = dbStat2(common.DbOpScan, func() (int, error) {
-		return c.Find(&bson.M{"hotelId": "3"}).Count()
-	})
-
+	count, err = c.Find(&bson.M{"hotelId": "3"}).Count()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if count == 0 {
-		err = dbStat1(common.DbOpInsert, func() error {
-			return c.Insert(&RatePlan{
-				"3",
-				"RACK",
-				"2015-04-09",
-				"2015-04-10",
-				&RoomType{
-					109.00,
-					"KNG",
-					"King sized bed",
-					109.00,
-					123.17}})
-		})
+		err = c.Insert(&RatePlan{
+			"3",
+			"RACK",
+			"2015-04-09",
+			"2015-04-10",
+			&RoomType{
+				109.00,
+				"KNG",
+				"King sized bed",
+				109.00,
+				123.17}})
 
 		if err != nil {
 			log.Fatal(err)
@@ -121,10 +103,7 @@ func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Ses
 	for i := 7; i <= 80; i++ {
 		if i%3 == 0 {
 			hotel_id := strconv.Itoa(i)
-			count, err = dbStat2(common.DbOpScan, func() (int, error) {
-				return c.Find(&bson.M{"hotelId": hotel_id}).Count()
-			})
-
+			count, err = c.Find(&bson.M{"hotelId": hotel_id}).Count()
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -152,19 +131,17 @@ func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Ses
 			}
 
 			if count == 0 {
-				err = dbStat1(common.DbOpInsert, func() error {
-					return c.Insert(&RatePlan{
-						hotel_id,
-						"RACK",
-						"2015-04-09",
-						end_date,
-						&RoomType{
-							rate,
-							"KNG",
-							"King sized bed",
-							rate,
-							rate_inc}})
-				})
+				err = c.Insert(&RatePlan{
+					hotel_id,
+					"RACK",
+					"2015-04-09",
+					end_date,
+					&RoomType{
+						rate,
+						"KNG",
+						"King sized bed",
+						rate,
+						rate_inc}})
 
 				if err != nil {
 					log.Fatal(err)

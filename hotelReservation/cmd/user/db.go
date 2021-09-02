@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"hotel_reserve/common"
 	"log"
 	"strconv"
 )
@@ -15,15 +14,13 @@ type User struct {
 	Password string `bson:"password"`
 }
 
-func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Session {
+func initializeDatabase(url string) *mgo.Session {
 	fmt.Printf("user db ip addr = %s\n", url)
 	session, err := mgo.Dial(url)
 	if err != nil {
 		panic(err)
 	}
 	// defer session.Close()
-
-	dbStat1, dbStat2 := monHelper.DBStatTool(common.DbStageLoad)
 
 	c := session.DB("user-db").C("user")
 
@@ -35,18 +32,14 @@ func initializeDatabase(monHelper *common.MonitoringHelper, url string) *mgo.Ses
 			password += suffix
 		}
 
-		count, err := dbStat2(common.DbOpScan, func() (int, error) {
-			return c.Find(&bson.M{"username": user_name}).Count()
-		})
+		count, err := c.Find(&bson.M{"username": user_name}).Count()
 		if err != nil {
 			log.Fatal(err)
 		}
 		if count == 0 {
 			sum := sha256.Sum256([]byte(password))
 			pass := fmt.Sprintf("%x", sum)
-			err = dbStat1(common.DbOpInsert, func() error {
-				return c.Insert(&User{user_name, pass})
-			})
+			err = c.Insert(&User{user_name, pass})
 			if err != nil {
 				log.Fatal(err)
 			}

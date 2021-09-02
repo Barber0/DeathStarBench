@@ -79,7 +79,7 @@ func main() {
 		result,
 	)
 
-	mongoSession := initializeDatabase(monHelper, profileMongoAddr)
+	mongoSession := initializeDatabase(profileMongoAddr)
 	defer mongoSession.Close()
 
 	poolLimit, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrDbConn, nil))
