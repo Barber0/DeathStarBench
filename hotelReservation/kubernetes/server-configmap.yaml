@@ -4,8 +4,8 @@ metadata:
   name: server-config
 data:
   #  autosys-1
-  #  InfluxToken: "pPheLdhgSoL2UYd-2GGoebJQp_Afy7D27iLyBQFS0_dxTNpPzpoQOSvPRejUxMVkEHt3MGnakK9kJjLAs5GIlw=="
-  InfluxToken: "RyjVhhS9bRw87nFjE0cVp0GqTo3hnSEUfsXk_v_HHe-pF2AQerA-Fc5WqDVauOodORk0rkAlm1JKgKi0ct_LcA=="
+  InfluxToken: "pPheLdhgSoL2UYd-2GGoebJQp_Afy7D27iLyBQFS0_dxTNpPzpoQOSvPRejUxMVkEHt3MGnakK9kJjLAs5GIlw=="
+  #  InfluxToken: "RyjVhhS9bRw87nFjE0cVp0GqTo3hnSEUfsXk_v_HHe-pF2AQerA-Fc5WqDVauOodORk0rkAlm1JKgKi0ct_LcA=="
 
   #  autosys-2
   #  InfluxToken: "v98y7IY7oIi-Yrneq5HT4I8nbnPh7J01DUwl4xN8pjsCJYXxu6VJLK6dD3tA2_hTr4rb08TSkzqkNAjiIKdIyA=="
