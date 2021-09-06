@@ -166,7 +166,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 		} else if err == memcache.ErrCacheMiss {
 			// memcached miss
 			var num number
-			err = s.Monitor.DBScan(c1, &bson.M{"hotelId": hotelId}, &num)
+			err = s.Monitor.DBRead(c1, &bson.M{"hotelId": hotelId}, &num)
 			if err != nil {
 				panic(err)
 			}
