@@ -56,6 +56,15 @@ spec:
                     operator: NotIn
                     values:
                       - monitor
+      initContainers:
+        - name: db-probe
+          image: simonalphafang/alpine-telnet:0.0.1
+          command:
+            - sh
+            - -c
+            - |
+              set -ex
+              echo '' | telnet mongodb-recommendation 27017
       containers:
         - command:
             - recommendation

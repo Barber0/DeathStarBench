@@ -21,7 +21,7 @@ metadata:
     role: server
   name: reservation
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: reservation
@@ -56,6 +56,16 @@ spec:
                     operator: NotIn
                     values:
                       - monitor
+      initContainers:
+        - name: db-probe
+          image: simonalphafang/alpine-telnet:0.0.1
+          command:
+            - sh
+            - -c
+            - |
+              set -ex
+              echo '' | telnet mongodb-reserve 27017
+              echo '' | telnet memcached-reserve 11211
       containers:
         - command:
             - reservation
