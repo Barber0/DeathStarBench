@@ -291,7 +291,7 @@ func (mh *MonitoringHelper) submitStoreOpStat2(
 		PerfLatency: endTime.Sub(startTime).Microseconds(),
 	}
 
-	if err != nil {
+	if err != nil && err != memcache.ErrCacheMiss {
 		pTag[LabelFailed] = DummyTagVal
 	}
 
@@ -355,7 +355,7 @@ func (mh *MonitoringHelper) DBStatTool(stage string) (dbStatFunc1, dbStatFunc2) 
 		}
 }
 
-func (mh *MonitoringHelper) BsonSize(v interface{}) (int, error) {
+func (mh *MonitoringHelper) bsonSize(v interface{}) (int, error) {
 	bsonBts, err := bson.Marshal(v)
 	if err != nil {
 		return 0, err
@@ -363,7 +363,7 @@ func (mh *MonitoringHelper) BsonSize(v interface{}) (int, error) {
 	return len(bsonBts), nil
 }
 
-func (mh *MonitoringHelper) BsonSizeLen(v interface{}) (int, int, error) {
+func (mh *MonitoringHelper) bsonSizeLen(v interface{}) (int, int, error) {
 	bts, err := bson.Marshal(v)
 	if err != nil {
 		return 0, 0, err
@@ -376,7 +376,7 @@ func (mh *MonitoringHelper) BsonSizeLen(v interface{}) (int, int, error) {
 }
 
 func (mh *MonitoringHelper) DBCount(c *mgo.Collection, reqObj interface{}) (int, error) {
-	reqSize, err2 := mh.BsonSize(reqObj)
+	reqSize, err2 := mh.bsonSize(reqObj)
 	if err2 != nil {
 		return 0, err2
 	}
@@ -402,12 +402,12 @@ func (mh *MonitoringHelper) DBScan(c *mgo.Collection, reqObj, result interface{}
 		err2     error
 	)
 	if err == nil {
-		respSize, respLen, err2 = mh.BsonSizeLen(result)
+		respSize, respLen, err2 = mh.bsonSizeLen(result)
 		if err2 != nil {
 			log.Println("parse db response failed: ", err2)
 		}
 	}
-	reqSize, err2 := mh.BsonSize(reqObj)
+	reqSize, err2 := mh.bsonSize(reqObj)
 	if err2 != nil {
 		log.Println("parse db request failed: ", err2)
 	}
@@ -420,7 +420,7 @@ func (mh *MonitoringHelper) DBInsert(c *mgo.Collection, reqObj interface{}) erro
 	err2 := c.Insert(reqObj)
 	endTime := time.Now()
 
-	reqSize, err2 := mh.BsonSize(reqObj)
+	reqSize, err2 := mh.bsonSize(reqObj)
 	if err2 != nil {
 		return err2
 	}
@@ -434,14 +434,14 @@ func (mh *MonitoringHelper) DBRead(c *mgo.Collection, reqObj, result interface{}
 	err := c.Find(reqObj).One(result)
 	endTime := time.Now()
 
-	reqSize, err2 := mh.BsonSize(reqObj)
+	reqSize, err2 := mh.bsonSize(reqObj)
 	if err2 != nil {
 		log.Println("parse db request failed: ", err2)
 	}
 
 	var respSize int
 	if result != nil {
-		respSize, err2 = mh.BsonSize(result)
+		respSize, err2 = mh.bsonSize(result)
 		if err2 != nil {
 			log.Println("parse db response failed: ", err2)
 		}
@@ -450,15 +450,15 @@ func (mh *MonitoringHelper) DBRead(c *mgo.Collection, reqObj, result interface{}
 	return err
 }
 
-func (mh *MonitoringHelper) CacheInsert(cli *memcache.Client, it *memcache.Item) error {
+func (mh *MonitoringHelper) CacheInsert(cli *MemcachedPool, it *memcache.Item) error {
 	return mh.cacheSet(cli, it, DbOpInsert)
 }
 
-func (mh *MonitoringHelper) CacheUpdate(cli *memcache.Client, it *memcache.Item) error {
+func (mh *MonitoringHelper) CacheUpdate(cli *MemcachedPool, it *memcache.Item) error {
 	return mh.cacheSet(cli, it, DbOpUpdate)
 }
 
-func (mh *MonitoringHelper) cacheSet(cli *memcache.Client, it *memcache.Item, op string) error {
+func (mh *MonitoringHelper) cacheSet(cli *MemcachedPool, it *memcache.Item, op string) error {
 	reqSize := len(it.Key) + len(it.Value)
 	startTime := time.Now()
 	err := cli.Set(it)
@@ -477,7 +477,7 @@ func (mh *MonitoringHelper) cacheSet(cli *memcache.Client, it *memcache.Item, op
 	return err
 }
 
-func (mh *MonitoringHelper) CacheRead(cli *memcache.Client, key string) (*memcache.Item, error) {
+func (mh *MonitoringHelper) CacheRead(cli *MemcachedPool, key string) (*memcache.Item, error) {
 	reqSize := len(key)
 	startTime := time.Now()
 	resItem, err := cli.Get(key)

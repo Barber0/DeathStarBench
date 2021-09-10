@@ -30,14 +30,15 @@ const name = common.ServiceSearch
 
 // Server implments the search service
 type Server struct {
+	//Tracer   opentracing.Tracer
+	Registry *registry.Client
+
 	geoClient  geo.GeoClient
 	rateClient rate.RateClient
 
-	//Tracer   opentracing.Tracer
-	Port     int
-	IpAddr   string
-	Registry *registry.Client
-	Monitor  *common.MonitoringHelper
+	Port    int
+	IpAddr  string
+	Monitor *common.MonitoringHelper
 }
 
 // Run starts the server

@@ -10,6 +10,10 @@ const (
 	ServiceSearch   = "search"
 	ServiceUser     = "user"
 
+	ServiceMemcProfile = "memcached-profile"
+	ServiceMemcRate    = "memcached-rate"
+	ServiceMemcResv    = "memcached-reserve"
+
 	CfgKeyInfluxBatchSize     = "InfluxBatchSize"
 	CfgKeyInfluxFlushInterval = "InfluxFlushInterval"
 	CfgKeyInfluxToken         = "InfluxToken"

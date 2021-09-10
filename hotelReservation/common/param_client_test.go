@@ -3,6 +3,7 @@ package common_test
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"testing"
 )
 
@@ -22,4 +23,13 @@ func TestName(t *testing.T) {
 	fmt.Println(u.String())
 
 	fmt.Println(myUrl.Encode())
+}
+
+func TestEnv(t *testing.T) {
+	v, err := strconv.Atoi("")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(v)
 }

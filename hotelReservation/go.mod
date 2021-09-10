@@ -12,7 +12,7 @@ require (
 	github.com/hailocab/go-geoindex v0.0.0-20160127134810-64631bfe9711
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.4.0
-	github.com/olivere/grpc v1.0.0
+	github.com/olivere/grpc v1.0.0 // indirect
 	github.com/opentracing-contrib/go-stdlib v0.0.0-20180308002341-f6b9967a3c69
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v1.10.0

@@ -33,11 +33,12 @@ const name = common.ServiceRate
 // Server implements the rate service
 type Server struct {
 	//Tracer       opentracing.Tracer
+	Registry *registry.Client
+
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
-	Registry     *registry.Client
-	MemcClient   *memcache.Client
+	MemcClient   *common.MemcachedPool
 	Monitor      *common.MonitoringHelper
 }
 

@@ -28,10 +28,10 @@ const name = common.ServiceUser
 
 // Server implements the user service
 type Server struct {
-	//users map[string]string
-
 	//Tracer       opentracing.Tracer
 	Registry     *registry.Client
+
+	//users map[string]string
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session

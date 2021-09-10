@@ -18,7 +18,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"time"
 )
 
@@ -44,13 +43,12 @@ func main() {
 	servPort, _ := strconv.Atoi(result["ProfilePort"])
 	servIp := ""
 	profileMongoAddr := ""
-	profileMemcAddr := ""
+
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
 		profileMongoAddr = fmt.Sprintf("mongodb-profile:%d", common.MongoPort)
-		profileMemcAddr = fmt.Sprintf("memcached-profile:%d", common.MemcachedPort)
 		//profileMongoAddr = "mongodb-profile:" + strings.Split(result["ProfileMongoAddress"], ":")[1]
 		//profileMemcAddr = "memcached-profile:" + strings.Split(result["ProfileMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
@@ -66,7 +64,6 @@ func main() {
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
 		profileMongoAddr = result["ProfileMongoAddress"]
-		profileMemcAddr = result["ProfileMemcAddress"]
 		servIp = result["ProfileIP"]
 		*jaegeraddr = result["jaegerAddress"]
 		*consuladdr = result["consulAddress"]
@@ -88,14 +85,14 @@ func main() {
 	memcIdleConn, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcIdleConn, nil))
 	memcTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcTimeout, nil))
 
-	fmt.Printf("profile memc addr port = %s\n", profileMemcAddr)
-	memcClient := memcache.New(profileMemcAddr)
-	memcClient.Timeout = time.Second * time.Duration(memcTimeout)
-	memcClient.MaxIdleConns = memcIdleConn
+	memcClient, err := common.NewMemcachedPool(common.ServiceMemcProfile, common.MemcachedPort, 10, time.Millisecond*time.Duration(memcTimeout), memcIdleConn)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Printf("profile ip = %s, port = %d\n", servIp, servPort)
 
-	//tracer, err := tracing.Init(common.ServiceProfile, *jaegeraddr)
+	//registryCli, err := registry.NewClient(*consuladdr)
 	//if err != nil {
 	//	panic(err)
 	//}

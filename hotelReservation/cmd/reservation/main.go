@@ -19,7 +19,6 @@ import (
 
 	"strconv"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"time"
 )
 
@@ -44,14 +43,11 @@ func main() {
 	servPort, _ := strconv.Atoi(result["ReservePort"])
 	servIp := ""
 	var reserveMongoAddr string
-	reserveMemcAddr := ""
 	jaegeraddr := flag.String("jaegeraddr", "", "Jaeger address")
 	consuladdr := flag.String("consuladdr", "", "Consul address")
 
 	if result["Orchestrator"] == "k8s" {
 		reserveMongoAddr = fmt.Sprintf("mongodb-reserve:%d", common.MongoPort)
-		reserveMemcAddr = fmt.Sprintf("memcached-reserve:%d", common.MemcachedPort)
-		//reserveMemcAddr = "memcached-reserve:" + strings.Split(result["ReserveMemcAddress"], ":")[1]
 		addrs, _ := net.InterfaceAddrs()
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
@@ -65,7 +61,6 @@ func main() {
 		*consuladdr = "consul:" + strings.Split(result["consulAddress"], ":")[1]
 	} else {
 		reserveMongoAddr = result["ReserveMongoAddress"]
-		reserveMemcAddr = result["ReserveMemcAddress"]
 		servIp = result["ReserveIP"]
 		*jaegeraddr = result["jaegerAddress"]
 		*consuladdr = result["consulAddress"]
@@ -88,9 +83,10 @@ func main() {
 	memcTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcTimeout, nil))
 
 	fmt.Printf("reservation memc addr port = %s\n", result["ReserveMemcAddress"])
-	memcClient := memcache.New(reserveMemcAddr)
-	memcClient.Timeout = time.Second * time.Duration(memcTimeout)
-	memcClient.MaxIdleConns = memcIdleConn
+	memcClient, err := common.NewMemcachedPool(common.ServiceMemcResv, common.MemcachedPort, 10, time.Millisecond*time.Duration(memcTimeout), memcIdleConn)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Printf("reservation ip = %s, port = %d\n", servIp, servPort)
 

@@ -23,7 +23,6 @@ import (
 	"net"
 	// "os"
 	"time"
-
 	// "strings"
 )
 
@@ -31,12 +30,13 @@ const name = common.ServiceReco
 
 // Server implements the recommendation service
 type Server struct {
-	hotels map[string]Hotel
 	//Tracer       opentracing.Tracer
+	Registry *registry.Client
+
+	hotels       map[string]Hotel
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
-	Registry     *registry.Client
 	Monitor      *common.MonitoringHelper
 }
 

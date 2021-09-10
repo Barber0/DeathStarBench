@@ -32,11 +32,11 @@ const name = common.ServiceProfile
 // Server implements the profile service
 type Server struct {
 	//Tracer       opentracing.Tracer
+	Registry     *registry.Client
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
-	Registry     *registry.Client
-	MemcClient   *memcache.Client
+	MemcClient   *common.MemcachedPool
 	Monitor      *common.MonitoringHelper
 }
 

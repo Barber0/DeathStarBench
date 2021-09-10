@@ -78,7 +78,7 @@ SelfAwareRetry:
 			for _, addr := range subset.Addresses {
 				fmt.Printf("hasMyIp: %v, ip: %v\n", hasMyIp, addr.IP)
 				hasMyIp = hasMyIp || addr.IP == podIp
-				tmpIpArr = append(tmpIpArr, parseIp2Int(addr.IP))
+				tmpIpArr = append(tmpIpArr, ParseIp2Int(addr.IP))
 			}
 			if hasMyIp {
 				ipArr = tmpIpArr
@@ -92,7 +92,7 @@ SelfAwareRetry:
 		return ipArr[i] < ipArr[j]
 	})
 
-	podIpNum := parseIp2Int(podIp)
+	podIpNum := ParseIp2Int(podIp)
 	for i, tmpIpNum := range ipArr {
 		if podIpNum == tmpIpNum {
 			p.IpRank = i
@@ -142,6 +142,6 @@ func (p *ParamAgent) loadConfig() error {
 	return nil
 }
 
-func parseIp2Int(podIp string) int64 {
+func ParseIp2Int(podIp string) int64 {
 	return big.NewInt(0).SetBytes(net.ParseIP(podIp).To4()).Int64()
 }

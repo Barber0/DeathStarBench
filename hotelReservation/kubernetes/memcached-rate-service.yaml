@@ -16,5 +16,6 @@ spec:
       targetPort: 11211
   selector:
     io.kompose.service: memcached-rate
+  clusterIP: None
 status:
   loadBalancer: {}

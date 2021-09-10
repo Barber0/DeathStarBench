@@ -59,7 +59,7 @@ spec:
       containers:
         - command:
             - profile
-          image: simonalphafang/hotel_reserve_proto:0.0.13-podname3
+          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-profile
           securityContext:
@@ -127,8 +127,6 @@ spec:
                 configMapKeyRef:
                   name: server-config
                   key: InfluxMemcStat
-
-
             - name: GOGC
               valueFrom:
                 configMapKeyRef:
@@ -139,4 +137,6 @@ spec:
                 configMapKeyRef:
                   key: GOMAXPROCS
                   name: profile
+            - name: SVR_MEMC_TIMEOUT
+              value: "1000"
       restartPolicy: Always
