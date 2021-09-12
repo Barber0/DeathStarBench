@@ -11,7 +11,7 @@ metadata:
     role: db
   name: memcached-reserve
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: memcached-reserve
