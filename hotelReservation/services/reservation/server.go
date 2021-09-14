@@ -94,12 +94,6 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 	res := new(pb.Result)
 	res.HotelId = make([]string, 0)
 
-	// session, err := mgo.Dial("mongodb-reservation")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
-
 	session := s.MongoSession.Copy()
 	defer session.Close()
 
@@ -140,7 +134,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			reserve := make([]reservation, 0)
 			err := s.Monitor.DBScan(c, &bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}, &reserve)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 
 			for _, r := range reserve {
@@ -151,7 +145,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)
-			panic(err)
+			return nil, err
 		}
 
 		// check capacity
@@ -168,7 +162,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			var num number
 			err = s.Monitor.DBRead(c1, &bson.M{"hotelId": hotelId}, &num)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 			hotelCap = int(num.Number)
 
@@ -176,7 +170,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			s.Monitor.CacheInsert(s.MemcClient, &memcache.Item{Key: memcCapKey, Value: []byte(strconv.Itoa(hotelCap))})
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)
-			panic(err)
+			return nil, err
 		}
 
 		if count+int(req.RoomNumber) > hotelCap {
@@ -207,7 +201,7 @@ func (s *Server) MakeReservation(ctx context.Context, req *pb.Request) (*pb.Resu
 			Number:       int(req.RoomNumber),
 		})
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		indate = outdate
 	}
@@ -222,11 +216,6 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 	res := new(pb.Result)
 	res.HotelId = make([]string, 0)
 
-	// session, err := mgo.Dial("mongodb-reservation")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
 	session := s.MongoSession.Copy()
 	defer session.Close()
 
@@ -266,7 +255,7 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				reserve := make([]reservation, 0)
 				err := s.Monitor.DBScan(c, &bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}, &reserve)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				for _, r := range reserve {
 					// fmt.Printf("reservation check reservation number = %d\n", hotelId)
@@ -277,7 +266,7 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				s.Monitor.CacheUpdate(s.MemcClient, &memcache.Item{Key: memc_key, Value: []byte(strconv.Itoa(count))})
 			} else {
 				fmt.Printf("Memmcached error = %s\n", err)
-				panic(err)
+				return nil, err
 			}
 
 			// check capacity
@@ -294,14 +283,14 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				var num number
 				err = c1.Find(&bson.M{"hotelId": hotelId}).One(&num)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				hotel_cap = int(num.Number)
 				// update memcached
 				s.Monitor.CacheInsert(s.MemcClient, &memcache.Item{Key: memc_cap_key, Value: []byte(strconv.Itoa(hotel_cap))})
 			} else {
 				fmt.Printf("Memmcached error = %s\n", err)
-				panic(err)
+				return nil, err
 			}
 
 			if count+int(req.RoomNumber) > hotel_cap {

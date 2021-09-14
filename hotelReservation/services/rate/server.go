@@ -95,11 +95,6 @@ func (s *Server) Shutdown() {
 // GetRates gets rates for hotels for specific date range.
 func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, error) {
 	res := new(pb.Result)
-	// session, err := mgo.Dial("mongodb-rate")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
 
 	ratePlans := make(RatePlans, 0)
 
@@ -134,7 +129,7 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 			tmpRatePlans := make(RatePlans, 0)
 			err := s.Monitor.DBScan(c, &bson.M{"hotelId": hotelID}, &tmpRatePlans)
 			if err != nil {
-				panic(err)
+				return nil, err
 			} else {
 				for _, r := range tmpRatePlans {
 					ratePlans = append(ratePlans, r)
@@ -154,7 +149,7 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)
-			panic(err)
+			return nil, err
 		}
 	}
 

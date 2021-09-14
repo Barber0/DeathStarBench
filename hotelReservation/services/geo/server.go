@@ -138,14 +138,6 @@ func (s *Server) getNearbyPoints(ctx context.Context, lat, lon float64) []geoind
 
 // newGeoIndex returns a geo index with points loaded
 func newGeoIndex(monHelper *common.MonitoringHelper, session *mgo.Session) *geoindex.ClusteringIndex {
-	// session, err := mgo.Dial("mongodb-geo")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
-
-	// fmt.Printf("new geo newGeoIndex\n")
-
 	s := session.Copy()
 	defer s.Close()
 	c := s.DB("geo-db").C("geo")

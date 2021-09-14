@@ -53,7 +53,7 @@ spec:
       containers:
         - command:
             - search
-          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
+          image: simonalphafang/hotel_reserve_proto:0.0.15-nopanic
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-search
           securityContext:

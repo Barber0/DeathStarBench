@@ -69,7 +69,7 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
+          image: simonalphafang/hotel_reserve_proto:0.0.15-nopanic
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
           securityContext:

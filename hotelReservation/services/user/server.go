@@ -130,12 +130,6 @@ func (s *Server) CheckUser(ctx context.Context, req *pb.Request) (*pb.Result, er
 
 // loadUsers loads hotel users from mongodb.
 func loadUsers(monHelper *common.MonitoringHelper, session *mgo.Session) map[string]string {
-	// session, err := mgo.Dial("mongodb-user")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
-
 	s := session.Copy()
 	defer s.Close()
 	c := s.DB("user-db").C("user")

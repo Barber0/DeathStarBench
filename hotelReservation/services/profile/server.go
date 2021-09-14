@@ -76,19 +76,6 @@ func (s *Server) Run() error {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	// register the service
-	// jsonFile, err := os.Open("config.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// defer jsonFile.Close()
-
-	// byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// var result map[string]string
-	// json.Unmarshal([]byte(byteValue), &result)
-
 	err = s.Registry.Register(name, s.IpAddr, s.Port)
 	if err != nil {
 		return fmt.Errorf("failed register: %v", err)
@@ -105,15 +92,6 @@ func (s *Server) Shutdown() {
 
 // GetProfiles returns hotel profiles for requested IDs
 func (s *Server) GetProfiles(ctx context.Context, req *pb.Request) (*pb.Result, error) {
-	// session, err := mgo.Dial("mongodb-profile")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
-	// fmt.Printf("In GetProfiles\n")
-
-	// fmt.Printf("In GetProfiles after setting c\n")
-
 	res := new(pb.Result)
 	hotels := make([]*pb.Hotel, 0)
 
@@ -163,7 +141,7 @@ func (s *Server) GetProfiles(ctx context.Context, req *pb.Request) (*pb.Result, 
 
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)
-			panic(err)
+			return nil, err
 		}
 	}
 
