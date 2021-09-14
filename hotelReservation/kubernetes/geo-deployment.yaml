@@ -42,12 +42,12 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
-              labelSelector:
-                matchLabels:
-                  app: mongodb-geo
+        #        podAffinity:
+        #          requiredDuringSchedulingIgnoredDuringExecution:
+        #            - topologyKey: hostType
+        #              labelSelector:
+        #                matchLabels:
+        #                  app: mongodb-geo
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -63,8 +63,11 @@ spec:
             - sh
             - -c
             - |
-              set -ex
-              echo '' | telnet mongodb-geo 27017
+              set -e
+              while true; do
+                echo '' | telnet mongodb-geo 27017 && break
+                sleep 3
+              done
       containers:
         - command:
             - geo
@@ -78,7 +81,7 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 200m
+              cpu: 150m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE

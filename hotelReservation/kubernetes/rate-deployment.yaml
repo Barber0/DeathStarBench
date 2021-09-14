@@ -42,12 +42,12 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
-              labelSelector:
-                matchLabels:
-                  app: mongodb-rate
+        #        podAffinity:
+        #          requiredDuringSchedulingIgnoredDuringExecution:
+        #            - topologyKey: hostType
+        #              labelSelector:
+        #                matchLabels:
+        #                  app: mongodb-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -63,9 +63,13 @@ spec:
             - sh
             - -c
             - |
-              set -ex
-              echo '' | telnet mongodb-rate 27017
-              echo '' | telnet memcached-rate 11211
+              set -e
+              while true; do
+                echo '' | telnet mongodb-rate 27017 && \
+                  echo '' | telnet memcached-rate 11211 && \
+                  break
+                sleep 3
+              done
       containers:
         - command:
             - rate

@@ -42,12 +42,12 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
-              labelSelector:
-                matchLabels:
-                  app: mongodb-reservation
+        #        podAffinity:
+        #          requiredDuringSchedulingIgnoredDuringExecution:
+        #            - topologyKey: hostType
+        #              labelSelector:
+        #                matchLabels:
+        #                  app: mongodb-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -63,9 +63,13 @@ spec:
             - sh
             - -c
             - |
-              set -ex
-              echo '' | telnet mongodb-reserve 27017
-              echo '' | telnet memcached-reserve 11211
+              set -e
+              while true; do
+                echo '' | telnet mongodb-reserve 27017 && \
+                  echo '' | telnet memcached-reserve 11211 && \
+                  break
+                sleep 3
+              done
       containers:
         - command:
             - reservation
@@ -79,7 +83,7 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 200m
+              cpu: 500m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
