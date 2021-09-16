@@ -4,9 +4,9 @@ metadata:
   name: server-config
 data:
   #  autosys-1
-  InfluxToken: "3BFAUIVYhSbAz8_azM1tfp3792va0DV39o2RSpHwB1fw3vUEFrEBKaT248vzU8Bt2tqsIpP2Q1cReeab4Ru7-w=="
+  InfluxToken: "uSJNRXWfbUqv6plgiz1JNjdQLCAy4rI6g1tAOceltPtfN_O_Z1a3ZoWPvMp9IO71OmWL-FDNvftRC6c8JD4C8A=="
+  #  InfluxToken: "3BFAUIVYhSbAz8_azM1tfp3792va0DV39o2RSpHwB1fw3vUEFrEBKaT248vzU8Bt2tqsIpP2Q1cReeab4Ru7-w=="
   #  InfluxToken: "WcceUgIt_ieuozW59ycURBATHU3CTwDaf3CN9L4pgisnoZwH1_1PoXN3E9pguv5LAZj8SPCNdMgo1EBHcx9Dew=="
-  #  InfluxToken: "uSJNRXWfbUqv6plgiz1JNjdQLCAy4rI6g1tAOceltPtfN_O_Z1a3ZoWPvMp9IO71OmWL-FDNvftRC6c8JD4C8A=="
   #  InfluxToken: "saDENB75Dj2RtRHepjGQmRCr7t7O6aJUa7-9-WIb92b1akg2IdfrbF-qucoFQvooO3cUzjEaHqtHX4_sUBA15g=="
   #  InfluxToken: "G6KA4bnMW_QmB9Qhr1Zy_3zciZCpeKe6GMhkGRMtwlX5M24lwJSfEBxToguRDIVJB_ue2mmWRqPLPxmraG3LOg=="
   #  InfluxToken: "QD_mjtcLpXZgsjRHsNhkXaLuVyzbHw-0j_NLJDgy-bcJGYVpXQZUtdRhM4wUM6NF7mcqpGVHsl2Kxg3G_I44XQ=="

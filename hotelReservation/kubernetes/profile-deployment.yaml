@@ -83,7 +83,7 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 200m
+              cpu: 150m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE

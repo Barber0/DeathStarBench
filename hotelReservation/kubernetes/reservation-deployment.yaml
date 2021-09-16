@@ -21,6 +21,7 @@ metadata:
     role: server
   name: reservation
 spec:
+  #  replicas: 2
   replicas: 1
   selector:
     matchLabels:
@@ -83,7 +84,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 400m
+              #              cpu: 200m
+              cpu: 700m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE

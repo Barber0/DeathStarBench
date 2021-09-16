@@ -66,7 +66,7 @@ spec:
             - containerPort: 27017
           resources:
             limits:
-              cpu: 200m
+              cpu: 150m
               memory: 250M
           args:
             - --config=/tmp/mongodb/mongo.conf
