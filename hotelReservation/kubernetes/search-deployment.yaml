@@ -42,6 +42,12 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: hostType
+              labelSelector:
+                matchLabels:
+                  app: mongodb-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -53,7 +59,7 @@ spec:
       containers:
         - command:
             - search
-          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
+          image: simonalphafang/hotel_reserve_proto:0.0.15-simmemc
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-search
           securityContext:

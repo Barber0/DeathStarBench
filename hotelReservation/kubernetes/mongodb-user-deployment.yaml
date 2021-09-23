@@ -51,6 +51,12 @@ spec:
         io.kompose.service: mongodb-user
     spec:
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: hostType
+              labelSelector:
+                matchLabels:
+                  app: mongodb-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

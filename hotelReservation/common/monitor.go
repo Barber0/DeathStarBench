@@ -15,9 +15,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -450,15 +452,15 @@ func (mh *MonitoringHelper) DBRead(c *mgo.Collection, reqObj, result interface{}
 	return err
 }
 
-func (mh *MonitoringHelper) CacheInsert(cli *MemcachedPool, it *memcache.Item) error {
+func (mh *MonitoringHelper) CacheInsert(cli *memcache.Client, it *memcache.Item) error {
 	return mh.cacheSet(cli, it, DbOpInsert)
 }
 
-func (mh *MonitoringHelper) CacheUpdate(cli *MemcachedPool, it *memcache.Item) error {
+func (mh *MonitoringHelper) CacheUpdate(cli *memcache.Client, it *memcache.Item) error {
 	return mh.cacheSet(cli, it, DbOpUpdate)
 }
 
-func (mh *MonitoringHelper) cacheSet(cli *MemcachedPool, it *memcache.Item, op string) error {
+func (mh *MonitoringHelper) cacheSet(cli *memcache.Client, it *memcache.Item, op string) error {
 	reqSize := len(it.Key) + len(it.Value)
 	startTime := time.Now()
 	err := cli.Set(it)
@@ -477,7 +479,7 @@ func (mh *MonitoringHelper) cacheSet(cli *MemcachedPool, it *memcache.Item, op s
 	return err
 }
 
-func (mh *MonitoringHelper) CacheRead(cli *MemcachedPool, key string) (*memcache.Item, error) {
+func (mh *MonitoringHelper) CacheRead(cli *memcache.Client, key string) (*memcache.Item, error) {
 	reqSize := len(key)
 	startTime := time.Now()
 	resItem, err := cli.Get(key)
@@ -498,4 +500,23 @@ func (mh *MonitoringHelper) CacheRead(cli *MemcachedPool, key string) (*memcache
 		1,
 	)
 	return resItem, err
+}
+
+type basicServer interface {
+	Run() error
+	Shutdown()
+}
+
+func RunServer(srv basicServer) {
+	sigC := make(chan os.Signal)
+	signal.Notify(sigC, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		log.Println(srv.Run())
+	}()
+
+	sig := <-sigC
+	log.Printf("receive signal: %v\n", sig)
+	srv.Shutdown()
+	log.Println("service shutdown")
 }

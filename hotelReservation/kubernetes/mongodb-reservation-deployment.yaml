@@ -50,6 +50,15 @@ spec:
     spec:
       serviceAccountName: mgo-operator
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: hostType
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: NotIn
+                    values:
+                      - mongodb-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

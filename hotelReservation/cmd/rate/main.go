@@ -78,7 +78,7 @@ func main() {
 	memcIdleConn, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcIdleConn, nil))
 	memcTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcTimeout, nil))
 
-	memcClient, err := common.NewMemcachedPool(common.ServiceMemcRate, common.MemcachedPort, 10, time.Millisecond*time.Duration(memcTimeout), memcIdleConn)
+	memcClient, err := common.NewMemcCli(common.ServiceMemcRate, common.MemcachedPort, time.Millisecond*time.Duration(memcTimeout), memcIdleConn)
 	if err != nil {
 		panic(err)
 	}

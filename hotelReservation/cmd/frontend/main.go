@@ -8,7 +8,6 @@ import (
 	"hotel_reserve/registry"
 	"hotel_reserve/services/frontend"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -75,5 +74,6 @@ func main() {
 		Port:    servPort,
 		Monitor: common.NewMonitoringHelper(common.ServiceFrontend, paramAgent.IpRank, result),
 	}
-	log.Fatal(srv.Run())
+
+	common.RunServer(srv)
 }

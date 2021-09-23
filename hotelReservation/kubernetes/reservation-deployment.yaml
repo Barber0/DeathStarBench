@@ -21,8 +21,7 @@ metadata:
     role: server
   name: reservation
 spec:
-  #  replicas: 2
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: reservation
@@ -43,12 +42,12 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
-        #        podAffinity:
-        #          requiredDuringSchedulingIgnoredDuringExecution:
-        #            - topologyKey: hostType
-        #              labelSelector:
-        #                matchLabels:
-        #                  app: mongodb-reservation
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: hostType
+              labelSelector:
+                matchLabels:
+                  app: mongodb-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -74,7 +73,7 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
+          image: simonalphafang/hotel_reserve_proto:0.0.15-simmemc
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
           securityContext:
@@ -84,8 +83,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              #              cpu: 200m
-              cpu: 700m
+              cpu: 200m
+              #              cpu: 700m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
