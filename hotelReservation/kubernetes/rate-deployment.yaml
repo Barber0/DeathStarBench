@@ -21,8 +21,8 @@ metadata:
     role: server
   name: rate
 spec:
-#  replicas: 2
-  replicas: 1
+#  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: rate

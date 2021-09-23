@@ -21,8 +21,8 @@ metadata:
     role: server
   name: reservation
 spec:
-  #  replicas: 2
-  replicas: 1
+  #  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: reservation
@@ -84,8 +84,8 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              #              cpu: 200m
-              cpu: 700m
+              cpu: 200m
+              #              cpu: 700m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
