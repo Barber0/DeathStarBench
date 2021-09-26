@@ -32,7 +32,7 @@ spec:
       affinity:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
+            - topologyKey: kubernetes.io/hostname
               labelSelector:
                 matchLabels:
                   app: mongodb-profile

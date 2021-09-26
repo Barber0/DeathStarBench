@@ -42,9 +42,15 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: rate
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
+            - topologyKey: kubernetes.io/hostname
               labelSelector:
                 matchLabels:
                   app: mongodb-reservation

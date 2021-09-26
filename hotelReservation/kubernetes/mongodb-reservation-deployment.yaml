@@ -50,15 +50,12 @@ spec:
     spec:
       serviceAccountName: mgo-operator
       affinity:
-        podAffinity:
+        podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
+            - topologyKey: kubernetes.io/hostname
               labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: NotIn
-                    values:
-                      - mongodb-rate
+                matchLabels:
+                  app: mongodb-rate
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
