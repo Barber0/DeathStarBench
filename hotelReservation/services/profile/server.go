@@ -36,7 +36,7 @@ type Server struct {
 	Port         int
 	IpAddr       string
 	MongoSession *mgo.Session
-	MemcClient   *common.MemcachedPool
+	MemcClient   *memcache.Client
 	Monitor      *common.MonitoringHelper
 }
 

@@ -29,6 +29,10 @@ type Server struct {
 	Monitor  *common.MonitoringHelper
 }
 
+func (s *Server) Shutdown() {
+	s.Monitor.Close()
+}
+
 // Run the server
 func (s *Server) Run() error {
 	if s.Port == 0 {

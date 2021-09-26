@@ -83,7 +83,7 @@ func main() {
 	memcTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrMemcTimeout, nil))
 
 	fmt.Printf("reservation memc addr port = %s\n", result["ReserveMemcAddress"])
-	memcClient, err := common.NewMemcachedPool(common.ServiceMemcResv, common.MemcachedPort, 10, time.Millisecond*time.Duration(memcTimeout), memcIdleConn)
+	memcClient, err := common.NewMemcCli(common.ServiceMemcResv, common.MemcachedPort, time.Millisecond*time.Duration(memcTimeout), memcIdleConn)
 	if err != nil {
 		panic(err)
 	}

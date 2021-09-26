@@ -42,12 +42,12 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
-        #        podAffinity:
-        #          requiredDuringSchedulingIgnoredDuringExecution:
-        #            - topologyKey: hostType
-        #              labelSelector:
-        #                matchLabels:
-        #                  app: mongodb-profile
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: mongodb-profile
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -73,7 +73,7 @@ spec:
       containers:
         - command:
             - profile
-          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
+          image: simonalphafang/hotel_reserve_proto:0.0.15-simmemc
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-profile
           securityContext:

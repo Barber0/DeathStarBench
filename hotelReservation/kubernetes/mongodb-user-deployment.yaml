@@ -51,6 +51,12 @@ spec:
         io.kompose.service: mongodb-user
     spec:
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: mongodb-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -72,16 +78,11 @@ spec:
             - --config=/tmp/mongodb/mongo.conf
             - --dbpath=/data/db
           volumeMounts:
-            #            - mountPath: /data/db
-            #              name: user
             - mountPath: /tmp/mongodb
               name: mongodb-conf
       hostname: user-db
       restartPolicy: Always
       volumes:
-        #        - name: user
-        #          persistentVolumeClaim:
-        #            claimName: user-pvc
         - name: mongodb-conf
           configMap:
             name: mongodb-user

@@ -11,8 +11,7 @@ metadata:
     role: db
   name: memcached-reserve
 spec:
-#  replicas: 2
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       io.kompose.service: memcached-reserve
@@ -31,7 +30,7 @@ spec:
       affinity:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: hostType
+            - topologyKey: kubernetes.io/hostname
               labelSelector:
                 matchLabels:
                   app: mongodb-reservation

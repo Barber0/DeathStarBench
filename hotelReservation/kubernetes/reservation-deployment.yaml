@@ -21,7 +21,6 @@ metadata:
     role: server
   name: reservation
 spec:
-  #  replicas: 1
   replicas: 2
   selector:
     matchLabels:
@@ -43,12 +42,18 @@ spec:
     spec:
       serviceAccountName: benchop
       affinity:
-        #        podAffinity:
-        #          requiredDuringSchedulingIgnoredDuringExecution:
-        #            - topologyKey: hostType
-        #              labelSelector:
-        #                matchLabels:
-        #                  app: mongodb-reservation
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: rate
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: mongodb-reservation
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -74,7 +79,7 @@ spec:
       containers:
         - command:
             - reservation
-          image: simonalphafang/hotel_reserve_proto:0.0.14-memcscale5
+          image: simonalphafang/hotel_reserve_proto:0.0.15-simmemc
           imagePullPolicy: IfNotPresent
           name: hotel-reserv-reservation
           securityContext:
