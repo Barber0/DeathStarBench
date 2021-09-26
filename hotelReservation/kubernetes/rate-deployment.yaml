@@ -152,5 +152,5 @@ spec:
                   key: GOMAXPROCS
                   name: rate
             - name: SVR_MEMC_TIMEOUT
-              value: "1000"
+              value: "3000"
       restartPolicy: Always

@@ -5,6 +5,7 @@ import (
 	"hash/crc32"
 	"log"
 	"net"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -12,9 +13,11 @@ import (
 type MemcachedPool struct {
 	addrDomain     string
 	consistentHash *ConsistentHash
+	monHelper      *MonitoringHelper
 }
 
 func NewMemcachedPool(
+	monHelper *MonitoringHelper,
 	addrDomain string,
 	port int,
 	replication int,
@@ -26,6 +29,7 @@ func NewMemcachedPool(
 		return nil, err
 	}
 	pool := &MemcachedPool{
+		monHelper:      monHelper,
 		addrDomain:     addrDomain,
 		consistentHash: NewConsistentHash(replication, crc32.ChecksumIEEE),
 	}
@@ -37,23 +41,80 @@ func NewMemcachedPool(
 		cli.Timeout = timeout
 		cli.MaxIdleConns = maxIdleConns
 		nodes = append(nodes, Node{
-			addr,
-			cli,
+			Addr:      addr,
+			ClientObj: cli,
 		})
+	}
+
+	sort.Slice(nodes, func(i, j int) bool {
+		ipI := ParseIp2Int(nodes[i].Addr)
+		ipJ := ParseIp2Int(nodes[j].Addr)
+		return ipI < ipJ
+	})
+
+	for i, node := range nodes {
+		node.Rank = i
 	}
 
 	pool.consistentHash.Add(nodes...)
 	return pool, nil
 }
 
-func (m *MemcachedPool) getConn(key string) *memcache.Client {
-	return m.consistentHash.GetNode([]byte(key)).ClientObj.(*memcache.Client)
+func (m *MemcachedPool) getConn(key string) (*memcache.Client, int) {
+	node := m.consistentHash.GetNode([]byte(key))
+	return node.ClientObj.(*memcache.Client), node.Rank
 }
 
 func (m *MemcachedPool) Get(key string) (*memcache.Item, error) {
-	return m.getConn(key).Get(key)
+	cli, rank := m.getConn(key)
+
+	startTime := time.Now()
+	item, err := cli.Get(key)
+	endTime := time.Now()
+
+	reqSize := len(key)
+
+	var respSize int
+	if err == nil {
+		respSize = len(item.Key) + len(item.Value)
+	}
+
+	m.monHelper.submitStoreOpStat3(
+		rank,
+		startTime,
+		endTime,
+		m.monHelper.memcStat,
+		DbOpRead,
+		DbStageRun,
+		err,
+		reqSize,
+		respSize,
+		1,
+	)
+
+	return item, err
 }
 
 func (m *MemcachedPool) Set(item *memcache.Item) error {
-	return m.getConn(item.Key).Set(item)
+	cli, rank := m.getConn(item.Key)
+
+	startTime := time.Now()
+	err := cli.Set(item)
+	endTime := time.Now()
+
+	reqSize := len(item.Key) + len(item.Value)
+
+	m.monHelper.submitStoreOpStat3(
+		rank,
+		startTime,
+		endTime,
+		m.monHelper.memcStat,
+		DbOpRead,
+		DbStageRun,
+		err,
+		reqSize,
+		0,
+		1,
+	)
+	return err
 }

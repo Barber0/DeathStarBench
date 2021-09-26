@@ -9,6 +9,7 @@ import (
 type Node struct {
 	Addr      string
 	ClientObj interface{}
+	Rank      int
 }
 
 type ConsistentHash struct {

@@ -35,7 +35,6 @@ const (
 	LabelFailed      = "failed"
 	LabelDbOpType    = "op"
 	LabelDbStage     = "stage"
-	LabelCrashed     = "crash"
 	LabelEpoch       = "epoch"
 
 	DbStageLoad = "load"
@@ -267,6 +266,31 @@ func (mh *MonitoringHelper) SenderMetricInterceptor() grpc.UnaryClientIntercepto
 }
 
 func (mh *MonitoringHelper) submitStoreOpStat2(
+	startTime,
+	endTime time.Time,
+	table,
+	opType,
+	stage string,
+	err error,
+	reqSize,
+	respSize int,
+	respLen int,
+) {
+	mh.submitStoreOpStat3(
+		0,
+		startTime,
+		endTime,
+		table,
+		opType,
+		stage,
+		err,
+		reqSize,
+		respSize,
+		respLen)
+}
+
+func (mh *MonitoringHelper) submitStoreOpStat3(
+	subjectRank int,
 	startTime,
 	endTime time.Time,
 	table,

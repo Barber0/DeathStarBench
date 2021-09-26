@@ -83,7 +83,7 @@ spec:
             - containerPort: 2112
           resources:
             limits:
-              cpu: 150m
+              cpu: 200m
               memory: 100M
           env:
             - name: GRPC_GO_REQUIRE_HANDSHAKE
@@ -152,5 +152,5 @@ spec:
                   key: GOMAXPROCS
                   name: profile
             - name: SVR_MEMC_TIMEOUT
-              value: "1000"
+              value: "3000"
       restartPolicy: Always
