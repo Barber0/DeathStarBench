@@ -69,6 +69,7 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
+
 	pb.RegisterRateServer(srv, s)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(srv)
@@ -82,7 +83,6 @@ func (s *Server) Run() error {
 	if err != nil {
 		return fmt.Errorf("failed register: %v", err)
 	}
-
 	return srv.Serve(lis)
 }
 
@@ -147,10 +147,7 @@ func (s *Server) GetRates(ctx context.Context, req *pb.Request) (*pb.Result, err
 			}
 
 			// write to memcached
-			s.Monitor.CacheInsert(
-				s.MemcClient,
-				&memcache.Item{Key: hotelID, Value: []byte(memc_str)},
-			)
+			s.Monitor.CacheInsert(s.MemcClient, &memcache.Item{Key: hotelID, Value: []byte(memc_str)})
 
 		} else {
 			fmt.Printf("Memmcached error = %s\n", err)

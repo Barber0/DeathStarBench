@@ -159,11 +159,6 @@ func (s *Server) GetRecommendations(ctx context.Context, req *pb.Request) (*pb.R
 
 // loadRecommendations loads hotel recommendations from mongodb.
 func loadRecommendations(monHelper *common.MonitoringHelper, session *mgo.Session) map[string]Hotel {
-	// session, err := mgo.Dial("mongodb-recommendation")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
 
 	s := session.Copy()
 	defer s.Close()

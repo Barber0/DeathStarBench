@@ -75,6 +75,7 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
+
 	pb.RegisterGeoServer(srv, s)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(srv)

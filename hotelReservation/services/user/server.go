@@ -29,7 +29,7 @@ const name = common.ServiceUser
 // Server implements the user service
 type Server struct {
 	//Tracer       opentracing.Tracer
-	Registry     *registry.Client
+	Registry *registry.Client
 
 	//users map[string]string
 	Port         int
@@ -69,6 +69,7 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
+
 	pb.RegisterUserServer(srv, s)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(srv)
@@ -126,35 +127,6 @@ func (s *Server) CheckUser(ctx context.Context, req *pb.Request) (*pb.Result, er
 	res.Correct = pass == user.Password
 
 	return res, nil
-}
-
-// loadUsers loads hotel users from mongodb.
-func loadUsers(monHelper *common.MonitoringHelper, session *mgo.Session) map[string]string {
-	// session, err := mgo.Dial("mongodb-user")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
-
-	s := session.Copy()
-	defer s.Close()
-	c := s.DB("user-db").C("user")
-
-	// unmarshal json profiles
-	var users []User
-	err := monHelper.DBScan(c, bson.M{}, &users)
-	if err != nil {
-		log.Println("Failed get users data: ", err)
-	}
-
-	res := make(map[string]string)
-	for _, user := range users {
-		res[user.Username] = user.Password
-	}
-
-	fmt.Printf("Done load users\n")
-
-	return res
 }
 
 type User struct {

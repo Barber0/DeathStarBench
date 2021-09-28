@@ -66,6 +66,7 @@ func (s *Server) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
+
 	pb.RegisterReservationServer(srv, s)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(srv)
@@ -264,7 +265,7 @@ func (s *Server) CheckAvailability(ctx context.Context, req *pb.Request) (*pb.Re
 				// memcached miss
 
 				reserve := make([]reservation, 0)
-				err := s.Monitor.DBScan(c, &bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}, &reserve)
+				err = s.Monitor.DBScan(c, &bson.M{"hotelId": hotelId, "inDate": indate, "outDate": outdate}, &reserve)
 				if err != nil {
 					panic(err)
 				}

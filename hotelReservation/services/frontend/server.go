@@ -62,7 +62,6 @@ func (s *Server) Run() error {
 	// fmt.Printf("frontend before mux\n")
 
 	mux := http.NewServeMux()
-	//mux := tracing.NewServeMux(s.Tracer)
 	mux.Handle("/", http.FileServer(http.Dir("services/frontend/static")))
 	mux.HandleFunc("/hotels", s.Monitor.HttpMetricInterceptor(s.searchHandler))
 	mux.HandleFunc("/recommendations", s.Monitor.HttpMetricInterceptor(s.recommendHandler))
@@ -198,11 +197,6 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		fmt.Println("searchHandler CheckAvailability failed")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
