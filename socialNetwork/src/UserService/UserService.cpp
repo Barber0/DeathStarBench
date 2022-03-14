@@ -9,6 +9,7 @@
 #include "../utils_mongodb.h"
 #include "../utils_thrift.h"
 #include "UserHandler.h"
+#include "../InfluxClient.h"
 
 using apache::thrift::protocol::TBinaryProtocolFactory;
 using apache::thrift::server::TThreadedServer;
@@ -16,16 +17,23 @@ using apache::thrift::transport::TFramedTransportFactory;
 using apache::thrift::transport::TServerSocket;
 using namespace social_network;
 
-void sigintHandler(int sig) { exit(EXIT_SUCCESS); }
+NEW_INFLUX_CLIENT
+void sigintHandler(int sig)
+{
+  CLOSE_INFLUX_CLIENT
+  exit(EXIT_SUCCESS);
+}
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   signal(SIGINT, sigintHandler);
   init_logger();
 
   SetUpTracer("config/jaeger-config.yml", "user-service");
 
   json config_json;
-  if (load_config_file("config/service-config.json", &config_json) != 0) {
+  if (load_config_file("config/service-config.json", &config_json) != 0)
+  {
     exit(EXIT_FAILURE);
   }
 
@@ -51,13 +59,15 @@ int main(int argc, char *argv[]) {
   mongoc_client_pool_t *mongodb_client_pool =
       init_mongodb_client_pool(config_json, "user", mongodb_conns);
 
-  if (memcached_client_pool == nullptr || mongodb_client_pool == nullptr) {
+  if (memcached_client_pool == nullptr || mongodb_client_pool == nullptr)
+  {
     return EXIT_FAILURE;
   }
 
   std::string netif = config_json["user-service"]["netif"];
   std::string machine_id = GetMachineId(netif);
-  if (machine_id == "") {
+  if (machine_id == "")
+  {
     exit(EXIT_FAILURE);
   }
   LOG(info) << "machine_id = " << machine_id;
@@ -69,14 +79,17 @@ int main(int argc, char *argv[]) {
       social_graph_conns, social_graph_timeout, social_graph_keepalive, config_json);
 
   mongoc_client_t *mongodb_client = mongoc_client_pool_pop(mongodb_client_pool);
-  if (!mongodb_client) {
+  if (!mongodb_client)
+  {
     LOG(fatal) << "Failed to pop mongoc client";
     return EXIT_FAILURE;
   }
   bool r = false;
-  while (!r) {
+  while (!r)
+  {
     r = CreateIndex(mongodb_client, "user", "user_id", true);
-    if (!r) {
+    if (!r)
+    {
       LOG(error) << "Failed to create mongodb index, try again";
       sleep(1);
     }
@@ -87,7 +100,7 @@ int main(int argc, char *argv[]) {
   TThreadedServer server(
       std::make_shared<UserServiceProcessor>(std::make_shared<UserHandler>(
           &thread_lock, machine_id, secret, memcached_client_pool,
-          mongodb_client_pool, &social_graph_client_pool)),
+          mongodb_client_pool, &social_graph_client_pool, INFLUX_CLIENT_VAR)),
       server_socket,
       std::make_shared<TFramedTransportFactory>(),
       std::make_shared<TBinaryProtocolFactory>());

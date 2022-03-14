@@ -10,6 +10,7 @@
 #include "../utils_thrift.h"
 #include "UserMentionHandler.h"
 #include "nlohmann/json.hpp"
+#include "../InfluxClient.h"
 
 using apache::thrift::protocol::TBinaryProtocolFactory;
 using apache::thrift::server::TThreadedServer;
@@ -17,26 +18,34 @@ using apache::thrift::transport::TFramedTransportFactory;
 using apache::thrift::transport::TServerSocket;
 using namespace social_network;
 
-static memcached_pool_st* memcached_client_pool;
-static mongoc_client_pool_t* mongodb_client_pool;
+static memcached_pool_st *memcached_client_pool;
+static mongoc_client_pool_t *mongodb_client_pool;
 
-void sigintHandler(int sig) {
-  if (memcached_client_pool != nullptr) {
+NEW_INFLUX_CLIENT
+
+void sigintHandler(int sig)
+{
+  CLOSE_INFLUX_CLIENT
+  if (memcached_client_pool != nullptr)
+  {
     memcached_pool_destroy(memcached_client_pool);
   }
-  if (mongodb_client_pool != nullptr) {
+  if (mongodb_client_pool != nullptr)
+  {
     mongoc_client_pool_destroy(mongodb_client_pool);
   }
   exit(EXIT_SUCCESS);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
   signal(SIGINT, sigintHandler);
   init_logger();
   SetUpTracer("config/jaeger-config.yml", "user-mention-service");
 
   json config_json;
-  if (load_config_file("config/service-config.json", &config_json) != 0) {
+  if (load_config_file("config/service-config.json", &config_json) != 0)
+  {
     exit(EXIT_FAILURE);
   }
 
@@ -52,7 +61,8 @@ int main(int argc, char* argv[]) {
       init_memcached_client_pool(config_json, "user", 32, memcached_conns);
   mongodb_client_pool =
       init_mongodb_client_pool(config_json, "user", mongodb_conns);
-  if (memcached_client_pool == nullptr || mongodb_client_pool == nullptr) {
+  if (memcached_client_pool == nullptr || mongodb_client_pool == nullptr)
+  {
     return EXIT_FAILURE;
   }
 
@@ -60,7 +70,7 @@ int main(int argc, char* argv[]) {
 
   TThreadedServer server(std::make_shared<UserMentionServiceProcessor>(
                              std::make_shared<UserMentionHandler>(
-                                 memcached_client_pool, mongodb_client_pool)),
+                                 memcached_client_pool, mongodb_client_pool, INFLUX_CLIENT_VAR)),
                          server_socket,
                          std::make_shared<TFramedTransportFactory>(),
                          std::make_shared<TBinaryProtocolFactory>());

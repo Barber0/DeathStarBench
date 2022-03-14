@@ -1,4 +1,4 @@
-FROM yg397/thrift-microservice-deps:xenial
+FROM simonalphafang/socialnetwork-env:0.0.2
 
 COPY ./ /social-network-microservices
 RUN cd /social-network-microservices \

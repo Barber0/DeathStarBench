@@ -9,6 +9,7 @@
 #include "../utils_redis.h"
 #include "../utils_thrift.h"
 #include "SocialGraphHandler.h"
+#include "../InfluxClient.h"
 
 using json = nlohmann::json;
 using apache::thrift::protocol::TBinaryProtocolFactory;
@@ -17,16 +18,23 @@ using apache::thrift::transport::TFramedTransportFactory;
 using apache::thrift::transport::TServerSocket;
 using namespace social_network;
 
-void sigintHandler(int sig) { exit(EXIT_SUCCESS); }
+NEW_INFLUX_CLIENT
+void sigintHandler(int sig)
+{
+  CLOSE_INFLUX_CLIENT
+  exit(EXIT_SUCCESS);
+}
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   signal(SIGINT, sigintHandler);
   init_logger();
 
   SetUpTracer("config/jaeger-config.yml", "social-graph-service");
 
   json config_json;
-  if (load_config_file("config/service-config.json", &config_json) != 0) {
+  if (load_config_file("config/service-config.json", &config_json) != 0)
+  {
     exit(EXIT_FAILURE);
   }
 
@@ -44,7 +52,8 @@ int main(int argc, char *argv[]) {
   mongoc_client_pool_t *mongodb_client_pool =
       init_mongodb_client_pool(config_json, "social-graph", mongodb_conns);
 
-  if (mongodb_client_pool == nullptr) {
+  if (mongodb_client_pool == nullptr)
+  {
     return EXIT_FAILURE;
   }
 
@@ -53,14 +62,17 @@ int main(int argc, char *argv[]) {
       user_keepalive, config_json);
 
   mongoc_client_t *mongodb_client = mongoc_client_pool_pop(mongodb_client_pool);
-  if (!mongodb_client) {
+  if (!mongodb_client)
+  {
     LOG(fatal) << "Failed to pop mongoc client";
     return EXIT_FAILURE;
   }
   bool r = false;
-  while (!r) {
+  while (!r)
+  {
     r = CreateIndex(mongodb_client, "social-graph", "user_id", true);
-    if (!r) {
+    if (!r)
+    {
       LOG(error) << "Failed to create mongodb index, try again";
       sleep(1);
     }
@@ -73,7 +85,7 @@ int main(int argc, char *argv[]) {
   TThreadedServer server(
       std::make_shared<SocialGraphServiceProcessor>(
           std::make_shared<SocialGraphHandler>(
-              mongodb_client_pool, &redis_client_pool, &user_client_pool)),
+              mongodb_client_pool, &redis_client_pool, &user_client_pool, INFLUX_CLIENT_VAR)),
       server_socket,
       std::make_shared<TFramedTransportFactory>(),
       std::make_shared<TBinaryProtocolFactory>());

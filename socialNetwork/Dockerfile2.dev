@@ -1,0 +1,3 @@
+FROM simonalphafang/socialnetwork-env:0.0.2
+
+ARG NUM_CPUS=40

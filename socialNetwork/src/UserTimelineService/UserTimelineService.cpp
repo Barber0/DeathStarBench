@@ -15,6 +15,7 @@
 #include "../utils_redis.h"
 #include "../utils_thrift.h"
 #include "UserTimelineHandler.h"
+#include "../InfluxClient.h"
 
 using apache::thrift::protocol::TBinaryProtocolFactory;
 using apache::thrift::server::TThreadedServer;
@@ -22,15 +23,23 @@ using apache::thrift::transport::TFramedTransportFactory;
 using apache::thrift::transport::TServerSocket;
 using namespace social_network;
 
-void sigintHandler(int sig) { exit(EXIT_SUCCESS); }
+NEW_INFLUX_CLIENT
 
-int main(int argc, char *argv[]) {
+void sigintHandler(int sig)
+{
+  CLOSE_INFLUX_CLIENT
+  exit(EXIT_SUCCESS);
+}
+
+int main(int argc, char *argv[])
+{
   signal(SIGINT, sigintHandler);
   init_logger();
   SetUpTracer("config/jaeger-config.yml", "user-timeline-service");
 
   json config_json;
-  if (load_config_file("config/service-config.json", &config_json) != 0) {
+  if (load_config_file("config/service-config.json", &config_json) != 0)
+  {
     exit(EXIT_FAILURE);
   }
 
@@ -49,7 +58,8 @@ int main(int argc, char *argv[]) {
   auto mongodb_client_pool =
       init_mongodb_client_pool(config_json, "user-timeline", mongodb_conns);
 
-  if (mongodb_client_pool == nullptr) {
+  if (mongodb_client_pool == nullptr)
+  {
     return EXIT_FAILURE;
   }
 
@@ -58,14 +68,17 @@ int main(int argc, char *argv[]) {
       post_storage_conns, post_storage_timeout, post_storage_keepalive, config_json);
 
   mongoc_client_t *mongodb_client = mongoc_client_pool_pop(mongodb_client_pool);
-  if (!mongodb_client) {
+  if (!mongodb_client)
+  {
     LOG(fatal) << "Failed to pop mongoc client";
     return EXIT_FAILURE;
   }
   bool r = false;
-  while (!r) {
+  while (!r)
+  {
     r = CreateIndex(mongodb_client, "user-timeline", "user_id", true);
-    if (!r) {
+    if (!r)
+    {
       LOG(error) << "Failed to create mongodb index, try again";
       sleep(1);
     }
@@ -79,7 +92,7 @@ int main(int argc, char *argv[]) {
   TThreadedServer server(std::make_shared<UserTimelineServiceProcessor>(
                              std::make_shared<UserTimelineHandler>(
                                  &redis_client_pool, mongodb_client_pool,
-                                 &post_storage_client_pool)),
+                                 &post_storage_client_pool, INFLUX_CLIENT_VAR)),
                          server_socket,
                          std::make_shared<TFramedTransportFactory>(),
                          std::make_shared<TBinaryProtocolFactory>());
