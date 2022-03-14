@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: media-mongodb
-        image: mongo
+        image: simonalphafang/snmgo_media:0.0.0
         volumeMounts:
           - name: my-data
             mountPath: "/data/db"

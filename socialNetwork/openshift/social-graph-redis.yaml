@@ -37,5 +37,5 @@ spec:
     spec:
       containers:
       - name: social-graph-redis
-        image: redis
+        image: simonalphafang/snrd_social_graph:0.0.0
       restartPolicy: Always

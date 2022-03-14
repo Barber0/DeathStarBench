@@ -9,7 +9,7 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 9090
+    - port: 9090
   selector:
     death-star-project: social-network
     app: social-graph-service
@@ -30,19 +30,55 @@ spec:
       app: social-graph-service
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: social-graph-service
       name: social-graph-service
     spec:
       containers:
-      - name: social-graph-service
-        image: simonalphafang/social_network:0.0.2
-        command: ["SocialGraphService"]
-        volumeMounts:
-          - mountPath: /social-network-microservices/config/jaeger-config.yml
-            subPath: jaeger-config.yml
-            name: jaeger-conf-yaml
+        - name: social-graph-service
+          image: simonalphafang/social_network:0.1.1
+          command: ["SocialGraphService"]
+          volumeMounts:
+            - mountPath: /social-network-microservices/config/jaeger-config.yml
+              subPath: jaeger-config.yml
+              name: jaeger-conf-yaml
+          env:
+            - name: InfluxConnStr
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxConnStr
+            - name: InfluxDns
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxDns
+            - name: InfluxPort
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxPort
+            - name: InfluxDBName
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxDBName
+            - name: InfluxServiceStat
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxServiceStat
+            - name: InfluxAuth
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxAuth
+            - name: InfluxBatchSize
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxBatchSize
       restartPolicy: Always
       volumes:
         - name: jaeger-conf-yaml

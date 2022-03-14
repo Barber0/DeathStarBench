@@ -1,5 +1,5 @@
 #     depends_on:
-      # - write-home-timeline-rabbitmq
+# - write-home-timeline-rabbitmq
 ---
 apiVersion: v1
 kind: Service
@@ -11,7 +11,7 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 9090
+    - port: 9090
   selector:
     death-star-project: social-network
     app: write-home-timeline-service
@@ -32,19 +32,55 @@ spec:
       app: write-home-timeline-service
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: write-home-timeline-service
       name: write-home-timeline-service
     spec:
       containers:
-      - name: write-home-timeline-service
-        image: simonalphafang/social_network:0.0.2
-        command: ["WriteHomeTimelineService"]
-        volumeMounts:
-          - mountPath: /social-network-microservices/config/jaeger-config.yml
-            subPath: jaeger-config.yml
-            name: jaeger-conf-yaml
+        - name: write-home-timeline-service
+          image: simonalphafang/social_network:0.1.1
+          command: ["WriteHomeTimelineService"]
+          volumeMounts:
+            - mountPath: /social-network-microservices/config/jaeger-config.yml
+              subPath: jaeger-config.yml
+              name: jaeger-conf-yaml
+          env:
+            - name: InfluxConnStr
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxConnStr
+            - name: InfluxDns
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxDns
+            - name: InfluxPort
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxPort
+            - name: InfluxDBName
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxDBName
+            - name: InfluxServiceStat
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxServiceStat
+            - name: InfluxAuth
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxAuth
+            - name: InfluxBatchSize
+              valueFrom:
+                configMapKeyRef:
+                  name: influx-config
+                  key: InfluxBatchSize
       restartPolicy: Always
       volumes:
         - name: jaeger-conf-yaml
