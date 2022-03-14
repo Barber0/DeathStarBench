@@ -17,17 +17,17 @@ target_include_directories(
 target_link_libraries(
     UserTimelineService
     ${MONGOC_LIBRARIES}
-    nlohmann_json::nlohmann_json
     ${THRIFT_LIB}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
+    nlohmann_json::nlohmann_json
     Boost::log
     Boost::log_setup
-    jaegertracing
+    OpenSSL::SSL
+    /usr/local/lib/libjaegertracing.so
     /usr/local/lib/libhiredis.a
     /usr/local/lib/libhiredis_ssl.a
     /usr/local/lib/libredis++.a
-    OpenSSL::SSL
     InfluxDB
 )
 
