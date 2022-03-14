@@ -84,55 +84,11 @@ namespace social_network
         {
             return defaultValue;
         }
-        sscanf(tmpStr, "%d", outVal);
+        sscanf(tmpStr, "%d", &outVal);
         return outVal;
     }
 
-    class InfluxSpan;
-    class InfluxClient
-    {
-
-    private:
-        std::unique_ptr<influxdb::InfluxDB> influxCli;
-        influxdb::Point copyPoint(influxdb::Point &p) { return p; }
-
-    public:
-        std::string service;
-        std::string pod;
-        std::string service_metric;
-
-        InfluxClient()
-        {
-            auto connStr = getEnv(INFLUX_CONN_STR, INFLUX_CONN_STR_DEFAULT);
-            this->influxCli = influxdb::InfluxDBFactory::Get(connStr);
-
-            auto batchSize = getIntEnv(InfluxBatchSize, 10000);
-            influxCli->batchOf(batchSize);
-
-            this->service_metric = getEnv(INFLUX_SVC_STAT, INFLUX_SVC_STAT_DEFAULT);
-            this->service = getEnv(AUTOSYS_SVC, UnKnown);
-            this->pod = getEnv(AUTOSYS_POD, "0");
-        }
-
-        void Close()
-        {
-            influxCli->flushBuffer();
-        }
-
-        void Write(influxdb::Point &p) { influxCli->write(copyPoint(p)); }
-
-        std::shared_ptr<InfluxSpan> StartSpan(
-            std::string method,
-            const std::map<std::string, std::string> &carrier)
-        {
-            auto span = std::make_shared<InfluxSpan>(new InfluxSpan(
-                this,
-                method,
-                carrier));
-            return span;
-        }
-    };
-
+    class InfluxClient;
     class InfluxSpan
     {
     private:
@@ -204,6 +160,49 @@ namespace social_network
         }
     };
 
+    class InfluxClient
+    {
+
+    private:
+        std::unique_ptr<influxdb::InfluxDB> influxCli;
+        influxdb::Point copyPoint(influxdb::Point &p) { return p; }
+
+    public:
+        std::string service;
+        std::string pod;
+        std::string service_metric;
+
+        InfluxClient()
+        {
+            auto connStr = getEnv(INFLUX_CONN_STR, INFLUX_CONN_STR_DEFAULT);
+            this->influxCli = influxdb::InfluxDBFactory::Get(connStr);
+
+            auto batchSize = getIntEnv(InfluxBatchSize, 10000);
+            influxCli->batchOf(batchSize);
+
+            this->service_metric = getEnv(INFLUX_SVC_STAT, INFLUX_SVC_STAT_DEFAULT);
+            this->service = getEnv(AUTOSYS_SVC, UnKnown);
+            this->pod = getEnv(AUTOSYS_POD, "0");
+        }
+
+        void Close()
+        {
+            influxCli->flushBuffer();
+        }
+
+        void Write(influxdb::Point &p) { influxCli->write(copyPoint(p)); }
+
+        std::shared_ptr<InfluxSpan> StartSpan(
+            std::string method,
+            const std::map<std::string, std::string> &carrier)
+        {
+            auto span = std::make_shared<InfluxSpan>(new InfluxSpan(
+                this,
+                method,
+                carrier));
+            return span;
+        }
+    };
 }
 
 #endif
