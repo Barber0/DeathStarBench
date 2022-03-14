@@ -108,56 +108,11 @@ namespace social_network
         InfluxSpan(
             InfluxClient *cli,
             std::string method,
-            const std::map<std::string, std::string> &carrier) : influxCli(cli), method(method)
-        {
-            try
-            {
+            const std::map<std::string, std::string> &carrier);
 
-                src_service = carrier.at(LabelSrcService);
-                src_pod = carrier.at(LabelSrcPod);
-                src_method = carrier.at(LabelSrcMethod);
-                epoch = carrier.at(LabelEpoch);
-            }
-            catch (std::out_of_range e)
-            {
-                failed = true;
-                LOG(error) << "build span(" << influxCli->service << "/" << influxCli->pod << "/" << method << ") failed: " << e.what();
-            }
-        }
+        void Finish();
 
-        void Finish()
-        {
-            if (failed)
-                return;
-            endTime = time_now;
-            long long latency = unix_ms_duration(endTime - startTime).count();
-
-            influxdb::Point &&influxPoint = influxdb::Point{influxCli->service_metric}
-
-                                                .addTag(LabelSrcService, src_service)
-                                                .addTag(LabelSrcPod, src_pod)
-                                                .addTag(LabelSrcMethod, src_method)
-                                                .addTag(LabelEpoch, epoch)
-
-                                                .addTag(LabelServiceName, influxCli->service)
-                                                .addTag(LabelPodName, influxCli->pod)
-                                                .addTag(LabelMethod, method)
-                                                .addField(PerfLatency, latency);
-            influxCli->Write(influxPoint);
-        }
-
-        const std::map<std::string, std::string> NextCarrier()
-        {
-            std::map<std::string, std::string> nextCarrier;
-            if (failed)
-                return nextCarrier;
-
-            nextCarrier.insert({LabelSrcService, influxCli->service});
-            nextCarrier.insert({LabelSrcPod, influxCli->pod});
-            nextCarrier.insert({LabelSrcMethod, method});
-            nextCarrier.insert({LabelEpoch, epoch});
-            return nextCarrier;
-        }
+        const std::map<std::string, std::string> NextCarrier();
     };
 
     class InfluxClient
@@ -172,18 +127,7 @@ namespace social_network
         std::string pod;
         std::string service_metric;
 
-        InfluxClient()
-        {
-            auto connStr = getEnv(INFLUX_CONN_STR, INFLUX_CONN_STR_DEFAULT);
-            this->influxCli = influxdb::InfluxDBFactory::Get(connStr);
-
-            auto batchSize = getIntEnv(InfluxBatchSize, 10000);
-            influxCli->batchOf(batchSize);
-
-            this->service_metric = getEnv(INFLUX_SVC_STAT, INFLUX_SVC_STAT_DEFAULT);
-            this->service = getEnv(AUTOSYS_SVC, UnKnown);
-            this->pod = getEnv(AUTOSYS_POD, "0");
-        }
+        InfluxClient();
 
         void Close()
         {
@@ -194,15 +138,86 @@ namespace social_network
 
         std::shared_ptr<InfluxSpan> StartSpan(
             std::string method,
-            const std::map<std::string, std::string> &carrier)
-        {
-            auto span = std::make_shared<InfluxSpan>(new InfluxSpan(
-                this,
-                method,
-                carrier));
-            return span;
-        }
+            const std::map<std::string, std::string> &carrier);
     };
+
+    InfluxSpan::InfluxSpan(
+        InfluxClient *cli,
+        std::string method,
+        const std::map<std::string, std::string> &carrier) : influxCli(cli), method(method)
+    {
+        try
+        {
+
+            src_service = carrier.at(LabelSrcService);
+            src_pod = carrier.at(LabelSrcPod);
+            src_method = carrier.at(LabelSrcMethod);
+            epoch = carrier.at(LabelEpoch);
+        }
+        catch (std::out_of_range e)
+        {
+            failed = true;
+            LOG(error) << "build span(" << influxCli->service << "/" << influxCli->pod << "/" << method << ") failed: " << e.what();
+        }
+    }
+
+    void InfluxSpan::Finish()
+    {
+        if (failed)
+            return;
+        endTime = time_now;
+        long long latency = unix_ms_duration(endTime - startTime).count();
+
+        influxdb::Point &&influxPoint = influxdb::Point{influxCli->service_metric}
+
+                                            .addTag(LabelSrcService, src_service)
+                                            .addTag(LabelSrcPod, src_pod)
+                                            .addTag(LabelSrcMethod, src_method)
+                                            .addTag(LabelEpoch, epoch)
+
+                                            .addTag(LabelServiceName, influxCli->service)
+                                            .addTag(LabelPodName, influxCli->pod)
+                                            .addTag(LabelMethod, method)
+                                            .addField(PerfLatency, latency);
+        influxCli->Write(influxPoint);
+    }
+
+    const std::map<std::string, std::string> InfluxSpan::NextCarrier()
+    {
+        std::map<std::string, std::string> nextCarrier;
+        if (failed)
+            return nextCarrier;
+
+        nextCarrier.insert({LabelSrcService, influxCli->service});
+        nextCarrier.insert({LabelSrcPod, influxCli->pod});
+        nextCarrier.insert({LabelSrcMethod, method});
+        nextCarrier.insert({LabelEpoch, epoch});
+        return nextCarrier;
+    }
+
+    InfluxClient::InfluxClient()
+    {
+        auto connStr = getEnv(INFLUX_CONN_STR, INFLUX_CONN_STR_DEFAULT);
+        this->influxCli = influxdb::InfluxDBFactory::Get(connStr);
+
+        auto batchSize = getIntEnv(InfluxBatchSize, 10000);
+        influxCli->batchOf(batchSize);
+
+        this->service_metric = getEnv(INFLUX_SVC_STAT, INFLUX_SVC_STAT_DEFAULT);
+        this->service = getEnv(AUTOSYS_SVC, UnKnown);
+        this->pod = getEnv(AUTOSYS_POD, "0");
+    }
+
+    std::shared_ptr<InfluxSpan> InfluxClient::StartSpan(
+        std::string method,
+        const std::map<std::string, std::string> &carrier)
+    {
+        auto span = std::make_shared<InfluxSpan>(new InfluxSpan(
+            this,
+            method,
+            carrier));
+        return span;
+    }
 }
 
 #endif
