@@ -10,8 +10,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 8080
-    targetPort: 8080
+    - port: 8080
+      targetPort: 8080
   selector:
     death-star-project: social-network
     app: media-frontend
@@ -32,36 +32,49 @@ spec:
       app: media-frontend
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: media-frontend
       name: media-frontend
     spec:
       containers:
-      - name: media-frontend
-        image: yg397/media-frontend:xenial
-        ports: 
-        - containerPort: 8080
-        volumeMounts:
-        - mountPath: /usr/local/openresty/nginx/lua-scripts
-          name: lua-conf
-        - mountPath: /usr/local/openresty/nginx/conf/nginx.conf
-          subPath: nginx.conf
-          name: nginx-conf
-        - mountPath: /usr/local/openresty/nginx/conf/jaeger-config.yml
-          subPath: jaeger-config.yml
-          name: jaeger-conf
+        - name: media-frontend
+          image: yg397/media-frontend:xenial
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /usr/local/openresty/nginx/lua-scripts
+              name: lua-conf
+            - mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+              subPath: nginx.conf
+              name: nginx-conf
+            - mountPath: /usr/local/openresty/nginx/conf/jaeger-config.yml
+              subPath: jaeger-config.yml
+              name: jaeger-conf
       restartPolicy: Always
       volumes:
-      - name: nginx-conf
-        configMap:
-          name: media-frontend-nginx
-          items:
-          - key: nginx.conf
-            path: nginx.conf
-      - name: lua-conf
-        configMap:
-          name: media-frontend-lua
-      - name: jaeger-conf
-        configMap:
-          name: jaeger-config-yaml
+        - name: nginx-conf
+          configMap:
+            name: media-frontend-nginx
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+        - name: lua-conf
+          configMap:
+            name: media-frontend-lua
+        - name: jaeger-conf
+          configMap:
+            name: jaeger-config-yaml

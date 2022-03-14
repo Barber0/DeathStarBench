@@ -9,7 +9,7 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 6379
+    - port: 6379
   selector:
     death-star-project: social-network
     app: compose-post-redis
@@ -30,12 +30,25 @@ spec:
       app: compose-post-redis
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: compose-post-redis
       name: compose-post-redis
     spec:
       containers:
-      - name: compose-post-redis
-        image: redis
+        - name: compose-post-redis
+          image: redis
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       restartPolicy: Always

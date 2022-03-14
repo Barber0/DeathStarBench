@@ -19,6 +19,7 @@ $CTL create cm nginx-thrift-luascripts-wrk2-api-home-timeline --from-file=nginx-
 $CTL create cm nginx-thrift-luascripts-wrk2-api-post --from-file=nginx-thrift-config/lua-scripts/wrk2-api/post -n ${NS}
 $CTL create cm nginx-thrift-luascripts-wrk2-api-user --from-file=nginx-thrift-config/lua-scripts/wrk2-api/user -n ${NS}
 $CTL create cm nginx-thrift-luascripts-wrk2-api-user-timeline --from-file=nginx-thrift-config/lua-scripts/wrk2-api/user-timeline -n ${NS}
+$CTL create cm nginx-thrift-luascripts-influx --from-file=nginx-thrift-config/lua-scripts/influx -n ${NS}
 
 # file
 $CTL create cm nginx-thrift        --from-file=nginx-thrift-config/nginx.conf -n ${NS}

@@ -9,7 +9,7 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 27017
+    - port: 27017
   selector:
     death-star-project: social-network
     app: post-storage-mongodb
@@ -30,18 +30,25 @@ spec:
       app: post-storage-mongodb
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: post-storage-mongodb
       name: post-storage-mongodb
     spec:
       containers:
-      - name: post-storage-mongodb
-        image: simonalphafang/snmgo_post_storage:0.0.0
-        volumeMounts:
-          - name: my-data
-            mountPath: "/data/db"
+        - name: post-storage-mongodb
+          image: simonalphafang/snmgo_post_storage:0.0.0
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       restartPolicy: Always
-      volumes:
-      - name: my-data
-        emptyDir: {}

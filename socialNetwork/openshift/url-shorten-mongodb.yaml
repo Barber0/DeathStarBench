@@ -9,7 +9,7 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 27017
+    - port: 27017
   selector:
     death-star-project: social-network
     app: url-shorten-mongodb
@@ -30,18 +30,25 @@ spec:
       app: url-shorten-mongodb
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: url-shorten-mongodb
       name: url-shorten-mongodb
     spec:
       containers:
-      - name: url-shorten-mongodb
-        image: simonalphafang/snmgo_url_shorten:0.0.0
-        volumeMounts:
-          - name: my-data
-            mountPath: "/data/db"
+        - name: url-shorten-mongodb
+          image: simonalphafang/snmgo_url_shorten:0.0.0
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       restartPolicy: Always
-      volumes:
-      - name: my-data
-        emptyDir: {}

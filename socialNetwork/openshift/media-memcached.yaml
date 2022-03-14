@@ -9,7 +9,7 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 11211
+    - port: 11211
   selector:
     death-star-project: social-network
     app: media-memcached
@@ -30,12 +30,25 @@ spec:
       app: media-memcached
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: media-memcached
       name: media-memcached
     spec:
       containers:
-      - name: media-memcached
-        image: memcached
+        - name: media-memcached
+          image: memcached
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       restartPolicy: Always

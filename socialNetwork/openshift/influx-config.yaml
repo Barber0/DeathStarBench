@@ -4,10 +4,10 @@ metadata:
   name: influx-config
   namespace: social-network
 data:
-  InfluxConnStr: "http://autosys:00000000@influxdb.autosys:8086/?db=ingestion"
-  InfluxDns: "influxdb.autosys"
+  InfluxConnStr: "http://autosys:00000000@influxdb.autosys.svc.cluster.local:8086/?db=ingestion"
+  InfluxDns: "influxdb.autosys.svc.cluster.local"
   InfluxPort: "8086"
   InfluxDBName: "ingestion"
   InfluxServiceStat: "service_metric"
   InfluxAuth: "autosys:00000000"
-  InfluxBatchSize: "10000"
+  InfluxBatchSize: "1000"

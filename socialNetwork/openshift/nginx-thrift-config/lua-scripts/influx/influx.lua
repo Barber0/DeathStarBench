@@ -14,13 +14,13 @@ function Span:new(method, req)
     setmetatable(o, self)
     self.__index = self
 
-    local influxServiceStat = os.getenv("InfluxServiceStat")
-    local influxDns = os.getenv("InfluxDns")
-    local influxPortStr = os.getenv("InfluxPort")
-    local influxDBName = os.getenv("InfluxDBName")
-    local influxAuth = os.getenv("InfluxAuth")
-    local autosysService = os.getenv("AutosysService")
-    local autosysPod = os.getenv("AutosysPod")
+    local influxServiceStat = ngx.shared.config:get("InfluxServiceStat")
+    local influxDns = ngx.shared.config:get("InfluxDns")
+    local influxPortStr = ngx.shared.config:get("InfluxPort")
+    local influxDBName = ngx.shared.config:get("InfluxDBName")
+    local influxAuth = ngx.shared.config:get("InfluxAuth")
+    local autosysService = ngx.shared.config:get("AutosysService")
+    local autosysPod = ngx.shared.config:get("AutosysPod")
 
     local influxPort = tonumber(influxPortStr)
 
@@ -47,7 +47,7 @@ function Span:new(method, req)
     influx:add_tag("src_pod", "0")
     influx:add_tag("src_method", "client")
 
-    local epoch = httpHeaders["epoch"]
+    local epoch = httpHeaders["epoch"] or "-1"
     influx:add_tag("epoch", epoch)
 
     self.influx_cli = influx

@@ -57,9 +57,7 @@
 
 #define START_SPAN_WITH_CARRIER_AND_DOWNSTREAM(name, carrier)                                  \
     START_SPAN_WITH_CARRIER(name, carrier)                                                     \
-    const std::map<std::string, std::string> next_carrier_##name = span_##name->NextCarrier(); \
-    std::cout << "---------------";                                                            \
-    print_map((carrier));
+    const std::map<std::string, std::string> next_carrier_##name = span_##name->NextCarrier(); 
 
 #define START_SPAN(name) START_SPAN_WITH_CARRIER_AND_DOWNSTREAM(name, carrier)
 

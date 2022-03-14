@@ -9,14 +9,14 @@ metadata:
   namespace: social-network
 spec:
   ports:
-  - port: 4369
-    name: tcp1
-  - port: 5671
-    name: tcp2
-  - port: 5672
-    name: tcp3
-  - port: 25672
-    name: tcp4
+    - port: 4369
+      name: tcp1
+    - port: 5671
+      name: tcp2
+    - port: 5672
+      name: tcp3
+    - port: 25672
+      name: tcp4
   selector:
     death-star-project: social-network
     app: write-home-timeline-rabbitmq
@@ -37,17 +37,29 @@ spec:
       app: write-home-timeline-rabbitmq
   template:
     metadata:
-      labels: 
+      labels:
         death-star-project: social-network
         app: write-home-timeline-rabbitmq
       name: write-home-timeline-rabbitmq
     spec:
       containers:
-      - name: write-home-timeline-rabbitmq
-        image: rabbitmq
-        env:
-        - name: RABBITMQ_ERLANG_COOKIE
-          value: "WRITE-HOME-TIMELINE-RABBITMQ"
-        - name: RABBITMQ_DEFAULT_VHOST
-          value: "/"
+        - name: write-home-timeline-rabbitmq
+          image: rabbitmq
+          env:
+            - name: RABBITMQ_ERLANG_COOKIE
+              value: "WRITE-HOME-TIMELINE-RABBITMQ"
+            - name: RABBITMQ_DEFAULT_VHOST
+              value: "/"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       restartPolicy: Always

@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
         - name: nginx-thrift
-          image: yg397/openresty-thrift:xenial
+          image: simonalphafang/openresty-thrift:0.0.1
           ports:
             - containerPort: 8080
           volumeMounts:
@@ -75,6 +75,8 @@ spec:
               name: jaeger-conf-json
             - mountPath: /gen-lua
               name: gen-lua
+            - mountPath: /usr/local/openresty/nginx/lua-scripts/influx
+              name: influx-tracer
           env:
             - name: InfluxConnStr
               valueFrom:
@@ -111,6 +113,18 @@ spec:
                 configMapKeyRef:
                   name: influx-config
                   key: InfluxBatchSize
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       restartPolicy: Always
       volumes:
         - name: nginx-conf
@@ -158,3 +172,6 @@ spec:
         - name: jaeger-conf-json
           configMap:
             name: nginx-thrift-jaeger
+        - name: influx-tracer
+          configMap:
+            name: nginx-thrift-luascripts-influx
