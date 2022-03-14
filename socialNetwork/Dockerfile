@@ -1,4 +1,4 @@
-FROM simonalphafang/socialnetwork-env:0.0.2
+FROM simonalphafang/socialnetwork-env:0.0.3
 
 COPY ./ /social-network-microservices
 RUN cd /social-network-microservices \
