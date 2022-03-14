@@ -17,10 +17,10 @@ target_include_directories(
 target_link_libraries(
     SocialGraphService
     ${MONGOC_LIBRARIES}
+    nlohmann_json::nlohmann_json
     ${THRIFT_LIB}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
-    nlohmann_json::nlohmann_json
     Boost::log
     Boost::log_setup
     /usr/local/lib/libjaegertracing.so

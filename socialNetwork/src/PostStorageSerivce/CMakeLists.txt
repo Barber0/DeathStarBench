@@ -22,7 +22,9 @@ target_link_libraries(
     ${Boost_LIBRARIES}
     Boost::log
     Boost::log_setup
-    jaegertracing
+    /usr/local/lib/libjaegertracing.so
+    OpenSSL::SSL
+
     InfluxDB
 )
 

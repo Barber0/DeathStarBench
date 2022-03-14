@@ -88,6 +88,7 @@ namespace social_network
         return outVal;
     }
 
+    class InfluxClient;
     class InfluxSpan
     {
     private:

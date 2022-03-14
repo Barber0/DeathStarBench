@@ -1,9 +1,9 @@
 add_executable(
     HomeTimelineService
-    HomeTimelineService.cpp
-    ${THRIFT_GEN_CPP_DIR}/HomeTimelineService.cpp
     ${THRIFT_GEN_CPP_DIR}/PostStorageService.cpp
     ${THRIFT_GEN_CPP_DIR}/SocialGraphService.cpp
+    HomeTimelineService.cpp
+    ${THRIFT_GEN_CPP_DIR}/HomeTimelineService.cpp
     ${THRIFT_GEN_CPP_DIR}/social_network_types.cpp
 )
 
@@ -23,10 +23,10 @@ target_link_libraries(
     Boost::log
     Boost::log_setup
     jaegertracing
+    OpenSSL::SSL
     /usr/local/lib/libhiredis.a
     /usr/local/lib/libhiredis_ssl.a
     /usr/local/lib/libredis++.a
-    OpenSSL::SSL
     InfluxDB
 )
 

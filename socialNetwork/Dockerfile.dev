@@ -27,3 +27,12 @@ RUN mkdir /influxdb-cxx \
     && cd build \
     && cmake .. \
     && make install
+
+RUN mkdir /redispp \
+    && git clone https://github.com/sewenew/redis-plus-plus.git /redispp \
+    && cd /redispp \
+    && mkdir build \
+    && cd build \
+    && cmake -DREDIS_PLUS_PLUS_CXX_STANDARD=17 .. \
+    && make \
+    && make install
