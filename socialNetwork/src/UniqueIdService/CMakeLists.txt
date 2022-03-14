@@ -20,6 +20,7 @@ target_link_libraries(
     Boost::log
     Boost::log_setup
     jaegertracing
+    InfluxDB
 )
 
 install(TARGETS UniqueIdService DESTINATION ./)

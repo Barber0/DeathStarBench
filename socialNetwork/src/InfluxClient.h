@@ -43,7 +43,7 @@
 #define INFLUX_CLIENT_PTR std::shared_ptr<InfluxClient>
 #define INFLUX_CLIENT_VAR _influxCli
 
-#define NEW_INFLUX_CLIENT INFLUX_CLIENT_PTR INFLUX_CLIENT_VAR = std::make_shared<InfluxClient>(new InfluxClient());
+#define NEW_INFLUX_CLIENT INFLUX_CLIENT_PTR INFLUX_CLIENT_VAR = std::make_shared<InfluxClient>();
 #define CLOSE_INFLUX_CLIENT INFLUX_CLIENT_VAR->Close();
 
 #define INFLUX_CLIENT_PLACEHOLDER INFLUX_CLIENT_PTR INFLUX_CLIENT_VAR
@@ -88,7 +88,6 @@ namespace social_network
         return outVal;
     }
 
-    class InfluxClient;
     class InfluxSpan
     {
     private:
@@ -212,10 +211,10 @@ namespace social_network
         std::string method,
         const std::map<std::string, std::string> &carrier)
     {
-        auto span = std::make_shared<InfluxSpan>(new InfluxSpan(
+        auto span = std::make_shared<InfluxSpan>(
             this,
             method,
-            carrier));
+            carrier);
         return span;
     }
 }

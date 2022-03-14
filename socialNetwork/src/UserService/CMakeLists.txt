@@ -27,6 +27,7 @@ target_link_libraries(
     Boost::log_setup
     jaegertracing
     OpenSSL::SSL
+    InfluxDB
 )
 
 install(TARGETS UserService DESTINATION ./)
