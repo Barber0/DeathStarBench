@@ -55,9 +55,9 @@
 #define START_SPAN_WITH_CARRIER(name, carrier) \
     std::shared_ptr<InfluxSpan> span_##name = INFLUX_CLIENT_VAR->StartSpan(#name, (carrier));
 
-#define START_SPAN_WITH_CARRIER_AND_DOWNSTREAM(name, carrier)                                  \
-    START_SPAN_WITH_CARRIER(name, carrier)                                                     \
-    const std::map<std::string, std::string> next_carrier_##name = span_##name->NextCarrier(); 
+#define START_SPAN_WITH_CARRIER_AND_DOWNSTREAM(name, carrier) \
+    START_SPAN_WITH_CARRIER(name, carrier)                    \
+    const std::map<std::string, std::string> next_carrier_##name = span_##name->NextCarrier();
 
 #define START_SPAN(name) START_SPAN_WITH_CARRIER_AND_DOWNSTREAM(name, carrier)
 
@@ -118,7 +118,7 @@ namespace social_network
 
     private:
         std::unique_ptr<influxdb::InfluxDB> influxCli;
-        influxdb::Point copyPoint(influxdb::Point &p) { return p; }
+        influxdb::Point copyPoint(influxdb::Point p) { return p; }
 
     public:
         std::string service;
@@ -132,7 +132,7 @@ namespace social_network
             influxCli->flushBuffer();
         }
 
-        void Write(influxdb::Point &p) { influxCli->write(copyPoint(p)); }
+        void Write(influxdb::Point p) { influxCli->write(copyPoint(p)); }
 
         std::shared_ptr<InfluxSpan> StartSpan(
             std::string method,
@@ -166,17 +166,17 @@ namespace social_network
         endTime = time_now;
         long long latency = unix_ms_duration(endTime - startTime).count();
 
-        influxdb::Point &&influxPoint = influxdb::Point{influxCli->service_metric}
+        influxdb::Point influxPoint = influxdb::Point{influxCli->service_metric}
 
-                                            .addTag(LabelSrcService, src_service)
-                                            .addTag(LabelSrcPod, src_pod)
-                                            .addTag(LabelSrcMethod, src_method)
-                                            .addTag(LabelEpoch, epoch)
+                                          .addTag(LabelSrcService, src_service)
+                                          .addTag(LabelSrcPod, src_pod)
+                                          .addTag(LabelSrcMethod, src_method)
+                                          .addTag(LabelEpoch, epoch)
 
-                                            .addTag(LabelServiceName, influxCli->service)
-                                            .addTag(LabelPodName, influxCli->pod)
-                                            .addTag(LabelMethod, method)
-                                            .addField(PerfLatency, latency);
+                                          .addTag(LabelServiceName, influxCli->service)
+                                          .addTag(LabelPodName, influxCli->pod)
+                                          .addTag(LabelMethod, method)
+                                          .addField(PerfLatency, latency);
         influxCli->Write(influxPoint);
     }
 
