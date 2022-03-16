@@ -10,6 +10,7 @@
 #include <sstream>
 #include "logger.h"
 #include "utils.h"
+#include <mutex>
 
 #define INFLUX_CONN_STR "InfluxConnStr"
 #define INFLUX_SVC_STAT "InfluxServiceStat"
@@ -119,6 +120,7 @@ namespace social_network
     private:
         std::unique_ptr<influxdb::InfluxDB> influxCli;
         influxdb::Point copyPoint(influxdb::Point p) { return p; }
+        std::mutex mu;
 
     public:
         std::string service;
@@ -132,7 +134,19 @@ namespace social_network
             influxCli->flushBuffer();
         }
 
-        void Write(influxdb::Point p) { influxCli->write(copyPoint(p)); }
+        void Write(influxdb::Point p)
+        {
+            mu.lock();
+            try
+            {
+                const std::lock_guard<std::mutex> lock(mu);
+                influxCli->write(copyPoint(p));
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "write influx Point failed: " << e.what() << '\n';
+            }
+        }
 
         std::shared_ptr<InfluxSpan> StartSpan(
             std::string method,
@@ -146,7 +160,6 @@ namespace social_network
     {
         try
         {
-
             src_service = carrier.at(LabelSrcService);
             src_pod = carrier.at(LabelSrcPod);
             src_method = carrier.at(LabelSrcMethod);
