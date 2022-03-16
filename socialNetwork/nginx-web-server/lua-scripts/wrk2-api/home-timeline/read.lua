@@ -46,7 +46,7 @@ function _M.ReadHomeTimeline()
     local bridge_tracer = require "opentracing_bridge_tracer"
     local ngx = ngx
     local GenericObjectPool = require "GenericObjectPool";
-    GenericObjectPool:setTimeout(60000)
+    GenericObjectPool:setTimeout(120000)
     local social_network_HomeTimelineService = require "social_network_HomeTimelineService"
     local HomeTimelineServiceClient = social_network_HomeTimelineService.HomeTimelineServiceClient
     local cjson = require "cjson"

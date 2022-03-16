@@ -17,7 +17,7 @@ end
 function _M.GetFollower()
     local ngx = ngx
     local GenericObjectPool = require "GenericObjectPool";
-    GenericObjectPool:setTimeout(60000)
+    GenericObjectPool:setTimeout(120000)
     local SocialGraphServiceClient = require"social_network_SocialGraphService".SocialGraphServiceClient
     local cjson = require "cjson"
     local jwt = require "resty.jwt"

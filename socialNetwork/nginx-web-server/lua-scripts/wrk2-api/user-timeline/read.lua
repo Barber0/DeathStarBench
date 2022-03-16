@@ -46,7 +46,7 @@ function _M.ReadUserTimeline()
     local bridge_tracer = require "opentracing_bridge_tracer"
     local ngx = ngx
     local GenericObjectPool = require "GenericObjectPool";
-    GenericObjectPool:setTimeout(60000)
+    GenericObjectPool:setTimeout(120000)
     local social_network_UserTimelineService = require "social_network_UserTimelineService"
     local UserTimelineServiceClient = social_network_UserTimelineService.UserTimelineServiceClient
     local cjson = require "cjson"

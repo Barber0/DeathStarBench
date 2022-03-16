@@ -12,7 +12,7 @@ function _M.ComposePost()
     local jwt = require "resty.jwt"
 
     local GenericObjectPool = require "GenericObjectPool";
-    GenericObjectPool:setTimeout(60000)
+    GenericObjectPool:setTimeout(120000)
     local social_network_ComposePostService = require "social_network_ComposePostService"
     local ComposePostServiceClient = social_network_ComposePostService.ComposePostServiceClient
 

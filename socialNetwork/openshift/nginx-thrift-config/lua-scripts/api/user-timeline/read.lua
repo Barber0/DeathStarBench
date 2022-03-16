@@ -47,7 +47,7 @@ end
 function _M.ReadUserTimeline()
     local ngx = ngx
     local GenericObjectPool = require "GenericObjectPool";
-    GenericObjectPool:setTimeout(60000)
+    GenericObjectPool:setTimeout(120000)
     local UserTimelineServiceClient = require"social_network_UserTimelineService".UserTimelineServiceClient
     local cjson = require "cjson"
     local jwt = require "resty.jwt"

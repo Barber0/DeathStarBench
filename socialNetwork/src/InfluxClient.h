@@ -136,7 +136,6 @@ namespace social_network
 
         void Write(influxdb::Point p)
         {
-            mu.lock();
             try
             {
                 const std::lock_guard<std::mutex> lock(mu);
