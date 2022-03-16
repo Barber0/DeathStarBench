@@ -6,7 +6,8 @@ end
 
 function _M.Unfollow()
     local ngx = ngx
-    local GenericObjectPool = require "GenericObjectPool"
+    local GenericObjectPool = require "GenericObjectPool";
+    GenericObjectPool:setTimeout(60000)
     local social_network_SocialGraphService = require "social_network_SocialGraphService"
     local SocialGraphServiceClient = social_network_SocialGraphService.SocialGraphServiceClient
 

@@ -6,7 +6,8 @@ end
 
 function _M.RegisterUser()
     local ngx = ngx
-    local GenericObjectPool = require "GenericObjectPool"
+    local GenericObjectPool = require "GenericObjectPool";
+    GenericObjectPool:setTimeout(60000)
     local social_network_UserService = require "social_network_UserService"
     local UserServiceClient = social_network_UserService.UserServiceClient
 

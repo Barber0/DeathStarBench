@@ -6,7 +6,8 @@ end
 
 function _M.Follow()
     local ngx = ngx
-    local GenericObjectPool = require "GenericObjectPool"
+    local GenericObjectPool = require "GenericObjectPool";
+    GenericObjectPool:setTimeout(60000)
     local SocialGraphServiceClient = require"social_network_SocialGraphService".SocialGraphServiceClient
     local jwt = require "resty.jwt"
 

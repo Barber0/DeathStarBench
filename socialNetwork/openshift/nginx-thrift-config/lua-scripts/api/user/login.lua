@@ -6,7 +6,8 @@ end
 
 function _M.Login()
     local ngx = ngx
-    local GenericObjectPool = require "GenericObjectPool"
+    local GenericObjectPool = require "GenericObjectPool";
+    GenericObjectPool:setTimeout(60000)
     local UserServiceClient = require"social_network_UserService".UserServiceClient
     local cjson = require "cjson"
 

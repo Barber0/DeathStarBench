@@ -47,7 +47,8 @@ end
 
 function _M.ReadHomeTimeline()
     local ngx = ngx
-    local GenericObjectPool = require "GenericObjectPool"
+    local GenericObjectPool = require "GenericObjectPool";
+    GenericObjectPool:setTimeout(60000)
     local HomeTimelineServiceClient = require"social_network_HomeTimelineService".HomeTimelineServiceClient
     local cjson = require "cjson"
     local jwt = require "resty.jwt"

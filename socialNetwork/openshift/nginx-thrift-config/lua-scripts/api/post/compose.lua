@@ -9,7 +9,8 @@ function _M.ComposePost()
     local cjson = require "cjson"
     local jwt = require "resty.jwt"
 
-    local GenericObjectPool = require "GenericObjectPool"
+    local GenericObjectPool = require "GenericObjectPool";
+    GenericObjectPool:setTimeout(60000)
     local social_network_ComposePostService = require "social_network_ComposePostService"
     local ComposePostServiceClient = social_network_ComposePostService.ComposePostServiceClient
 
