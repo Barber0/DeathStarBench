@@ -12,7 +12,10 @@
 #include "utils.h"
 #include <mutex>
 
-#define INFLUX_CONN_STR "InfluxConnStr"
+#define InfluxDns "InfluxDns"
+#define InfluxPort "InfluxPort"
+#define InfluxDBName "InfluxDBName"
+#define InfluxAuth "InfluxAuth"
 #define INFLUX_SVC_STAT "InfluxServiceStat"
 #define InfluxBatchSize "InfluxBatchSize"
 
@@ -207,7 +210,12 @@ namespace social_network
 
     InfluxClient::InfluxClient()
     {
-        auto connStr = getEnv(INFLUX_CONN_STR, INFLUX_CONN_STR_DEFAULT);
+        auto influxDns = getEnv(InfluxDns, "influxdb.autosys.svc.cluster.local");
+        auto influxPort = getEnv(InfluxPort, "8086");
+        auto influxDbName = getEnv(InfluxDBName, "ingestion");
+        auto influxAuth = getEnv(InfluxAuth, "autosys:00000000");
+        std::string connStr = std::string("http://") + influxAuth + std::string("@") + influxDns + std::string("/?db=") + influxDbName;
+
         this->influxCli = influxdb::InfluxDBFactory::Get(connStr);
 
         auto batchSize = getIntEnv(InfluxBatchSize, 10000);

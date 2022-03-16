@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
         - name: compose-post-service
-          image: simonalphafang/social_network:0.1.4
+          image: simonalphafang/social_network:0.1.5
           command: ["ComposePostService"]
           volumeMounts:
             - mountPath: /social-network-microservices/config/jaeger-config.yml
