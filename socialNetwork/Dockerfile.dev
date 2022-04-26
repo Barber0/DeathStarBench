@@ -1,3 +1,22 @@
+# image: simonalphafang/socialnetwork-env
+
 FROM yg397/thrift-microservice-deps:xenial
 
 ARG NUM_CPUS=40
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-linux-x86_64.tar.gz -O /cmake.tgz \
+    && tar zvxf /cmake.tgz -C / \
+    && rm /usr/bin/cmake \
+    && ln -s /cmake-3.22.1-linux-x86_64/bin/cmake /usr/bin/cmake
+
+
+RUN apt update && apt install -y build-essential autoconf libtool pkg-config
+RUN mkdir -p /grpc
+WORKDIR /grpc
+RUN git clone --recurse-submodules -b v1.45.0 --depth 1 https://github.com/grpc/grpc && \
+    cd grpc && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR ../.. && \
+    make -j4 && \
+    make install
