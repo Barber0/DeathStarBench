@@ -27,7 +27,7 @@ namespace social_network
   public:
     ~TextHandler() override = default;
 
-    void SetClient(ClientPool<ThriftClient<UrlShortenServiceClient>> *,
+    TextHandler(ClientPool<ThriftClient<UrlShortenServiceClient>> *,
                    ClientPool<ThriftClient<UserMentionServiceClient>> *);
 
     Status ComposeText(::grpc::ServerContext *context, const ::social_network_grpc::TextRequest *request, ::social_network_grpc::TextResult *response) override;
@@ -37,7 +37,7 @@ namespace social_network
     ClientPool<ThriftClient<UserMentionServiceClient>> *_user_mention_client_pool;
   };
 
-  void TextHandler::SetClient(
+  TextHandler::TextHandler(
       ClientPool<ThriftClient<UrlShortenServiceClient>> *url_client_pool,
       ClientPool<ThriftClient<UserMentionServiceClient>>
           *user_mention_client_pool)

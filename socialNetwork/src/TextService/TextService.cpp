@@ -49,15 +49,14 @@ int main(int argc, char *argv[])
             user_mention_conns, user_mention_timeout, user_mention_keepalive, config_json);
 
         // grpc hack
-        std::string server_address = "0.0.0.0" + intToString(port);
+        std::string server_address = "0.0.0.0:" + intToString(port);
         grpc::EnableDefaultHealthCheckService(true);
         grpc::reflection::InitProtoReflectionServerBuilderPlugin();
 
         ServerBuilder builder;
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
-        TextHandler service;
-        service.SetClient(&url_client_pool, &user_mention_pool);
+        TextHandler service(&url_client_pool, &user_mention_pool);
         builder.RegisterService(&service);
 
         std::unique_ptr<Server> server(builder.BuildAndStart());
