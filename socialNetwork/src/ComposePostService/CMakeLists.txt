@@ -1,6 +1,8 @@
 add_executable(
     ComposePostService
     ComposePostService.cpp
+    ${GRPC_GEN_CPP_DIR}/social_network.grpc.pb.cc
+    ${GRPC_GEN_CPP_DIR}/social_network.pb.cc
     ${THRIFT_GEN_CPP_DIR}/ComposePostService.cpp
     ${THRIFT_GEN_CPP_DIR}/PostStorageService.cpp
     ${THRIFT_GEN_CPP_DIR}/UserTimelineService.cpp
@@ -28,7 +30,8 @@ target_link_libraries(
     OpenSSL::SSL
     /usr/local/lib/libjaegertracing.so
     /usr/local/lib/libSimpleAmqpClient.so
-
+    gRPC::grpc++
+    ${_REFLECTION}
 )
 
 install(TARGETS ComposePostService DESTINATION ./)

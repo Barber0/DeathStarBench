@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package social_network_grpc;
+
+message TextRequest {
+    int64 req_id = 1;
+    string text = 2;
+    map<string, string> carrier = 3;
+}
+
+message UserMention {
+    int64 user_id = 1;
+    string username = 2;
+}
+
+message Url {
+    string shortened_url = 1;
+    string expanded_url = 2;
+}
+
+message TextResult {
+    string text = 1;
+    repeated UserMention user_mentions = 2;
+    repeated Url urls = 3;
+}
+
+service TextService {
+    rpc ComposeText(TextRequest) returns(TextResult);
+}

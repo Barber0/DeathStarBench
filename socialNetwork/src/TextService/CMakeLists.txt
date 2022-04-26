@@ -1,6 +1,9 @@
+
 add_executable(
     TextService
     TextService.cpp
+    ${GRPC_GEN_CPP_DIR}/social_network.grpc.pb.cc
+    ${GRPC_GEN_CPP_DIR}/social_network.pb.cc
     ${THRIFT_GEN_CPP_DIR}/TextService.cpp
     ${THRIFT_GEN_CPP_DIR}/UserMentionService.cpp
     ${THRIFT_GEN_CPP_DIR}/UrlShortenService.cpp
@@ -21,6 +24,8 @@ target_link_libraries(
     Boost::log
     Boost::log_setup
     jaegertracing
+    gRPC::grpc++
+    ${_REFLECTION}
 )
 
 install(TARGETS TextService DESTINATION ./)
