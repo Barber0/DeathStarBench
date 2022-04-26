@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     //       "text-service-client", text_addr, text_port, 0, text_conns, text_timeout,
     //       text_keepalive, config_json);
     auto text_client = social_network_grpc::TextService::NewStub(grpc::CreateChannel(
-        text_addr + intToString(text_port), ::grpc::InsecureChannelCredentials()));
+        text_addr + ":" + intToString(text_port), ::grpc::InsecureChannelCredentials()));
 
     ClientPool<ThriftClient<UserServiceClient>>
         user_client_pool(
